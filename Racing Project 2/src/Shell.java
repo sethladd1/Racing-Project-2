@@ -9,28 +9,19 @@ import java.util.Scanner;
 import java.util.regex.*;
 public class Shell
 {
-	private static Time time = new Time();
-	private static Simulator sim = new Simulator();
-	private static ArrayList<String> debugMessages = new ArrayList<String>();
-	private static ArrayList<String> eventCodes = new ArrayList<String>();
-	private static Channel chan = new Channel();
+//	private ArrayList<String> debugMessages = new ArrayList<String>();
 
-	private static int run;
-	private static boolean runEnded = true;
-	private static boolean runStarted = true;
-
-	//nextStart and nextFinish are the index of the next racer in competitors 
-	private static ArrayList<Integer> competitors = new ArrayList<Integer>();
-	private static int nextStart, nextFinish;
-
-	public static void main(String[] args)
+	private ArrayList<Run> runs;
+	private Run curRun;
+	private boolean power = true;
+	private int IND=0, PARIND=1;
+	public Shell(String filePath)
 	{
 		Scanner in;
 		String cmdLine = "";
 		boolean exit = false;
-		if(args.length>1){
 			try{
-				File file = new File(args[1]);
+				File file = new File(filePath);
 				in =  new Scanner(file);
 				while(in.hasNextLine()){
 					cmdLine = in.nextLine();
@@ -41,7 +32,23 @@ public class Shell
 			}catch(FileNotFoundException e){
 				System.out.println("File not found.");
 			}
+		
+		while(exit==false)
+		{
+			System.out.print("CMD> ");
+			in = new Scanner(System.in);
+			cmdLine = in.nextLine();
+
+			if(!readCommandLine(cmdLine))
+				System.out.println("Command not read");
+			if(cmdLine.equalsIgnoreCase("exit"))
+				exit = true;
 		}
+	}
+	public Shell(){
+		Scanner in;
+		String cmdLine = "";
+		boolean exit = false;
 		while(exit==false)
 		{
 			System.out.print("CMD> ");
@@ -58,7 +65,7 @@ public class Shell
 	 * @param line - line to be processed
 	 * @return - whether or not the command was read or not
 	 */
-	public static boolean readCommandLine(String line)
+	public boolean readCommandLine(String line)
 	{
 		Scanner in = new Scanner(line);
 
@@ -70,63 +77,51 @@ public class Shell
 		Matcher matcher = p.matcher(commandToken);
 		if(matcher.matches()){
 			String s[] = matcher.group().split("\\:");
-			time.setCurrent(0, Integer.parseInt(s[0]), Integer.parseInt(s[1].split("\\.")[0]), Integer.parseInt(s[1].split("\\.")[1]));;
+			curRun.setTime(0, Integer.parseInt(s[0]), Integer.parseInt(s[1].split("\\.")[0]), Integer.parseInt(s[1].split("\\.")[1]));;
 			commandToken = in.next();
 		}
 
-		if(commandToken.equalsIgnoreCase("debug"))
-		{
-			System.out.println("---- Printing Debug Messages ----");
-			for(String s : debugMessages)
-				System.out.println(s);
-			System.out.println("---------------------------------");
-		}
+//		if(commandToken.equalsIgnoreCase("debug"))
+//		{
+//			System.out.println("---- Printing Debug Messages ----");
+//			for(String s : debugMessages)
+//				System.out.println(s);
+//			System.out.println("---------------------------------");
+//		}
 
 		// Turn	system	on,	enter	quiescent	state
-		else if(commandToken.equalsIgnoreCase("on"))
-		{
-			debugMessages.add(sim.power(true));
-		}
-
-		// Turn	system	off (but	stay	in	simulator
-		else if(commandToken.equalsIgnoreCase("off"))
-		{
-			debugMessages.add(sim.power(false));
-		}
-
-		// (if	off)	Turn	system	on,	enter	quiescent	state
-		// (if	on)	Turn	system	off (but	stay	in	simulator
 		else if(commandToken.equalsIgnoreCase("power"))
 		{
-			debugMessages.add(sim.powerTog());
+			power = !power;
+//			debugMessages.add(tur);
+			
 		}
 
 		// Exit	the	simulator
 		else if(commandToken.equalsIgnoreCase("exit"))
 		{
-			debugMessages.add("Simulator Exiting...");
-			sim.power(false);
+//			debugMessages.add("Simulator Exiting...");
 			System.exit(0);
 		}
 
 		// Resets	the	System	to	initial	state
 		else if(commandToken.equalsIgnoreCase("reset"))
 		{
-			debugMessages.add(sim.reset());
+//			debugMessages.add(sim.reset());
+			runs = new ArrayList<Run>();
+			curRun = new Run(IND);
+			
 		}
 
 		// Set	the	current	time
 		else if(commandToken.equalsIgnoreCase("time"))
 		{
-			String timeTok = in.next();
-
-			int h = Integer.parseInt(timeTok.substring(0,2));
-			int m = Integer.parseInt(timeTok.substring(3,5));
-			int s = Integer.parseInt(timeTok.substring(6,8));
-			int ms = Integer.parseInt(timeTok.substring(9));
-
-			time = new Time(h,m,s,ms);
-			debugMessages.add("Time changed to: <" + h + ":" + m + ":" + s + "." + ms + ">");
+			String time = in.next();
+			if(curRun.setTime(time))
+				return true;
+			else
+				return false;
+			
 		}
 
 		// Toggle	the	state	of	the	channel	<CHANNEL>
@@ -134,11 +129,11 @@ public class Shell
 		{
 			try{
 				chanNum = in.nextInt();
-				chan.toggle(chanNum);
-				debugMessages.add(time.getCurrentTimeStamp() + "<competitor " + competitors.get(nextStart) + "> TROG" + chanNum); 
+				curRun.toggle(chanNum);
+//				debugMessages.add(time.getCurrentTimeStamp() + "<competitor " + competitors.get(nextStart) + "> TROG" + chanNum); 
 			}
 			catch(InputMismatchException e){
-
+				return false;
 			}
 		}
 
@@ -154,7 +149,7 @@ public class Shell
 		// Disconnect	a	sensor from channel	<NUM>
 		else if(commandToken.equalsIgnoreCase("disc"))
 		{
-
+			
 		}
 
 		// IND	|	PARIND	|	GRP	|	PARGRP
@@ -166,20 +161,18 @@ public class Shell
 		// Create	a	new	Run (must	end	a	run	first)
 		else if(commandToken.equalsIgnoreCase("newrun"))
 		{
-			if(!runEnded){
+			if(curRun.running()){
 				in.close();
 				return false;
 			}
-			runEnded = false;
-			eventCodes.add("new run " + run );
+			
 
 		}
 
 		// Done	with	a	Run
 		else if(commandToken.equalsIgnoreCase("endrun"))
 		{
-			runEnded = true;
-			eventCodes.add("end run " + run );
+			curRun.end();
 		}
 
 		// Print	the	run	on	stdout
@@ -197,16 +190,9 @@ public class Shell
 		{
 			try
             {
-                  File file = new File("exportdata.xml");
+                  File file = new File("Run"data.xml");
                  
-                  if (file.createNewFile())
-                  {
-                      debugMessages.add("File 'exportdata.xml' is created!");
-                  }
-                  else
-                  {
-                      debugMessages.add("File 'exportdata.xml' already exists.");
-                  }
+                  
                  
                   FileWriter writer = new FileWriter(file);
                   writer.write(formatRunAsXML(Integer.parseInt(in.next())));
@@ -225,8 +211,7 @@ public class Shell
 		{
 			try{ 
 				compNum = in.nextInt();
-				if(!competitors.contains(compNum))
-					competitors.add(compNum);
+				curRun.addRacer(compNum);
 			}
 			catch(InputMismatchException e){
 				return false;
@@ -250,16 +235,15 @@ public class Shell
 		// Exchange	next	two	competitors	to	finish in	IND
 		else if(commandToken.equalsIgnoreCase("swap"))
 		{
-			compNum =  competitors.get(nextStart);
-			competitors.get(nextStart);
-			competitors.set(nextStart, compNum);
+			if(curRun.swap()){
+				return false;
+			}
 		}
 
 		// The	next	competitor	to	finish	will	not	finish
 		else if(commandToken.equalsIgnoreCase("dnf"))
 		{
 			chan.trigger(2);
-			eventCodes.add(time.getCurrentTimeStamp() + "<competitor"+competitors.get(nextFinish++) +"> DNF" );
 		}
 
 		// Trigger	channel	<NUM>
@@ -322,7 +306,7 @@ public class Shell
 	 * readCommandTextFile reads a file f (text document) and processes the command
 	 * @param f
 	 */
-	public static void readCommandTextFile(File f)
+	public void readCommandTextFile(File f)
 	{
 		try
 		{
@@ -340,82 +324,7 @@ public class Shell
 		}
 	}
 
-	// We are unclear on how this should look. Our version should be in this format: 
-	// <run><competitorNum><timestamp1>start</timestamp1><timestamp2>finish</timestamp2><EventTime>time</EventTime></CompNum>...</run>
-	private static String formatRunAsXML(int runNum){
-		ArrayList<String> compStrings = new ArrayList<String>();
-		ArrayList<String> compXML = new ArrayList<String>();
-		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\.[0-9]+");
-		Pattern p2;
-		Matcher matcher;
-		String xString;
-		Scanner in;
-		String word;
-		String time = "";
-		String xml="";
-		int compNum = 0; 
-		int i = 0;
-		for(int c : competitors){
-			compStrings.add("competitor " + c);
-			compXML.add("<"+c+">");
-		}
-		String s = eventCodes.get(i);
-		while(!s.equals("new run "+ runNum) && i<eventCodes.size()){
-			s = eventCodes.get(i++);
-			if(s.equals("new run "+ runNum)){
-				xml = "<Run" + runNum + ">";
-			}
-		}
-		if(s.equals("new run "+ runNum)){
-			for( ; i<eventCodes.size() && eventCodes.get(i).equals("end run " + runNum); ++i){
-
-
-				in = new Scanner(s);
-				word = in.next();
-				matcher = p.matcher(word);
-				if(matcher.matches()){
-					time = word;
-					word = in.next();
-
-				}
-				for(int j = 0; j<compStrings.size(); ++j){
-					if(eventCodes.get(i).indexOf(compStrings.get(j))>-1){
-						if(compStrings.get(j).indexOf("START")>-1){
-							xString = compXML.get(j);
-
-							xString += "<" + time +">" + "start" + "</" + time +">";
-							compXML.set(j, xString);
-
-						}
-						else if(compStrings.get(j).indexOf("DNF")>-1){
-							xString = compXML.get(j);
-
-							xString += "<" + time +">" + "dnf" + "</" + time +"></"+competitors.get(j) + ">";
-							compXML.set(j, xString);
-
-
-						}
-						else if(compStrings.get(j).indexOf("FINISH")>-1){
-							xString = compXML.get(j);
-
-							xString += "<" + time +">" + "finish" + "</" + time +"></"+competitors.get(j) + ">";
-							compXML.set(j, xString);
-						}
-
-					}
-				}
-				in.close();
-			}
-			for(String x : compXML){
-
-				xml += x;
-			}
-			
-			return xml;
-		}
-		return "";
-	}
-
+	private boolean export(Run run){}
 	/**
 	 * Prints out results
 	 * @return File of messages
