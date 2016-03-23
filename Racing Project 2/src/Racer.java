@@ -7,7 +7,7 @@ public class Racer {
 	private boolean started;
 	private boolean finished;
 
-	public Run(int number){}
+	public Racer(int number){}
 	public void setStart (long start){}
 	public void setFinish (long finish){}
 	public void setDNF (boolean dnf){}
