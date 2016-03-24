@@ -2,7 +2,7 @@
 
 public class Racer {
 	
-		private long s, f;
+		private long s=-1, f=-1;
 		private boolean dnf; 
 
 		public int Racers (int number)
@@ -36,11 +36,17 @@ public class Racer {
 		}
 		public boolean started()
 		{
-			return true;
+			if (s>=0)
+				return true;
+			else
+				return false;
 		}
 		public boolean finished()
 		{
-			return true;
+			if (f>=0)
+				return true;
+			else
+				return false;
 		}
 		public boolean DNF()
 		{
