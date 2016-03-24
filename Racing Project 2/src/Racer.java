@@ -44,7 +44,7 @@ public class Racer {
 		}
 		public boolean DNF()
 		{
-			return true;
+			return dnf;
 		}
 		
 }
