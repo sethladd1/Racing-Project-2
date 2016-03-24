@@ -33,13 +33,14 @@ public class Time
 	}
 	public String convertToTimestamp(double elapsedInMilliseconds){
 		// get minutes elapsed
-		int min = (int)elapsedInMilliseconds/60;
+		double elapsedsec = elapsedInMilliseconds/1000;
+		int h = (int)(elapsedsec/(60*60));
+		int min = (int)((elapsedsec%(60*60))/60);
 		// get remaining sec
-		double r = elapsedInMilliseconds%60;
+		double r = (elapsedsec%(60*60))%60;
 		//format seconds to hundredth precision
-		String sec = Double.toString(r);
-		String.format("%1$.2f", sec);
-		return Integer.toString(min)+":"+sec ;
+		String sec = String.format("%1$.2f", r);
+		return Integer.toString(h)+ ":" + Integer.toString(min)+":"+sec ;
 		
 	}
 	public boolean stringToTime(String s){

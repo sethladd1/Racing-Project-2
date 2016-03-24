@@ -1,45 +1,51 @@
-// TEST github update
 import java.io.File;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.*;
 public class Shell
 {
-//	private ArrayList<String> debugMessages = new ArrayList<String>();
+	//	private ArrayList<String> debugMessages = new ArrayList<String>();
 
 	private ArrayList<Run> runs;
 	private Run curRun;
 	private boolean power = true;
 	private int IND=0, PARIND=1;
+	private String errorMessage;
 	public Shell(String filePath)
 	{
 		Scanner in;
 		String cmdLine = "";
 		boolean exit = false;
-			try{
-				File file = new File(filePath);
-				in =  new Scanner(file);
-				while(in.hasNextLine()){
-					cmdLine = in.nextLine();
-					if(readCommandLine(cmdLine)){
-						System.out.println("line" + cmdLine + "not read");
-					}
+		try{
+			File file = new File(filePath);
+			in =  new Scanner(file);
+			while(in.hasNextLine()){
+				cmdLine = in.nextLine();
+				if(readCommand(cmdLine)){
+					System.out.println("line" + cmdLine + "not read");
 				}
-			}catch(FileNotFoundException e){
-				System.out.println("File not found.");
 			}
-		
+		}catch(FileNotFoundException e){
+			System.out.println("File not found.");
+		}
+
 		while(exit==false)
 		{
 			System.out.print("CMD> ");
 			in = new Scanner(System.in);
 			cmdLine = in.nextLine();
 
-			if(!readCommandLine(cmdLine))
+			if(!readCommand(cmdLine))
 				System.out.println("Command not read");
 			if(cmdLine.equalsIgnoreCase("exit"))
 				exit = true;
@@ -55,8 +61,8 @@ public class Shell
 			in = new Scanner(System.in);
 			cmdLine = in.nextLine();
 
-			if(!readCommandLine(cmdLine))
-				System.out.println("Command not read");
+			if(!readCommand(cmdLine))
+				System.out.println("Command not understood");
 			if(cmdLine.equalsIgnoreCase("exit"))
 				exit = true;
 		}
@@ -65,10 +71,10 @@ public class Shell
 	 * @param line - line to be processed
 	 * @return - whether or not the command was read or not
 	 */
-	public boolean readCommandLine(String line)
+	public boolean readCommand(String line)
 	{
 		Scanner in = new Scanner(line);
-
+		errorMessage = "";
 		String commandToken = in.next();
 		int chanNum, compNum;
 		//all commands from file are preceded with timestamp.
@@ -81,36 +87,42 @@ public class Shell
 			commandToken = in.next();
 		}
 
-//		if(commandToken.equalsIgnoreCase("debug"))
-//		{
-//			System.out.println("---- Printing Debug Messages ----");
-//			for(String s : debugMessages)
-//				System.out.println(s);
-//			System.out.println("---------------------------------");
-//		}
+		//		if(commandToken.equalsIgnoreCase("debug"))
+		//		{
+		//			System.out.println("---- Printing Debug Messages ----");
+		//			for(String s : debugMessages)
+		//				System.out.println(s);
+		//			System.out.println("---------------------------------");
+		//		}
 
 		// Turn	system	on,	enter	quiescent	state
 		else if(commandToken.equalsIgnoreCase("power"))
 		{
+			if(!power){
+				runs = new ArrayList<Run>();
+				curRun = new Run(IND, 1);
+				runs.add(curRun);
+			}
 			power = !power;
-//			debugMessages.add(tur);
-			
+			//			debugMessages.add(tur);
+
 		}
 
 		// Exit	the	simulator
 		else if(commandToken.equalsIgnoreCase("exit"))
 		{
-//			debugMessages.add("Simulator Exiting...");
+			//			debugMessages.add("Simulator Exiting...");
 			System.exit(0);
 		}
 
 		// Resets	the	System	to	initial	state
 		else if(commandToken.equalsIgnoreCase("reset"))
 		{
-//			debugMessages.add(sim.reset());
+			//			debugMessages.add(sim.reset());
 			runs = new ArrayList<Run>();
-			curRun = new Run(IND);
-			
+			curRun = new Run(IND, 1);
+			runs.add(curRun);
+
 		}
 
 		// Set	the	current	time
@@ -121,7 +133,7 @@ public class Shell
 				return true;
 			else
 				return false;
-			
+
 		}
 
 		// Toggle	the	state	of	the	channel	<CHANNEL>
@@ -130,7 +142,7 @@ public class Shell
 			try{
 				chanNum = in.nextInt();
 				curRun.toggle(chanNum);
-//				debugMessages.add(time.getCurrentTimeStamp() + "<competitor " + competitors.get(nextStart) + "> TROG" + chanNum); 
+				//				debugMessages.add(time.getCurrentTimeStamp() + "<competitor " + competitors.get(nextStart) + "> TROG" + chanNum); 
 			}
 			catch(InputMismatchException e){
 				return false;
@@ -149,12 +161,41 @@ public class Shell
 		// Disconnect	a	sensor from channel	<NUM>
 		else if(commandToken.equalsIgnoreCase("disc"))
 		{
-			
+			try{
+				chanNum = in.nextInt();
+				if(curRun.getChannel(chanNum)){
+					curRun.toggle(chanNum);
+				}
+			}catch(Exception e){
+				errorMessage = "Missing or invalid argument";
+				in.close();
+				return false;
+			}
 		}
 
 		// IND	|	PARIND	|	GRP	|	PARGRP
 		else if(commandToken.equalsIgnoreCase("event"))
 		{
+			try{
+			String type = in.next();
+			if(type.equalsIgnoreCase("ind")){
+				curRun.setType(IND);
+			}
+			else
+				if(type.equalsIgnoreCase("parind"))
+				{
+					curRun.setType(PARIND);
+				}
+				else{ 
+					in.close();
+					errorMessage = "Invalid argument";
+					return false;
+				}
+			}catch(NoSuchElementException e){
+				in.close();
+				errorMessage = "Missing argument";
+				return false;
+			}
 
 		}
 
@@ -165,7 +206,7 @@ public class Shell
 				in.close();
 				return false;
 			}
-			
+
 
 		}
 
@@ -180,7 +221,9 @@ public class Shell
 		{
 			try{
 				print(Integer.parseInt(in.next()));
-			}catch(NumberFormatException e){
+			}catch(Exception e){
+				errorMessage = "Missing or invalid argument";
+				in.close();
 				return false;
 			}
 		}
@@ -189,21 +232,25 @@ public class Shell
 		else if(commandToken.equalsIgnoreCase("export"))
 		{
 			try
-            {
-                  File file = new File("Run"data.xml");
-                 
-                  
-                 
-                  FileWriter writer = new FileWriter(file);
-                  writer.write(formatRunAsXML(Integer.parseInt(in.next())));
-                  writer.flush();
-                  writer.close();
-                 
-                }
-            catch (IOException e)
-            {
-                  e.printStackTrace();
-            }
+			{
+				//TODO 
+				int runNum = in.nextInt();
+				for(Run r : runs){
+					if(r.getRunNum() == runNum){
+						export(r);
+						in.close();
+						return true;
+					}
+				}
+				errorMessage = "run "+ runNum+ " not found";
+				return false;
+
+			}
+			catch(Exception e){
+				errorMessage = "Missing or invalid argument";
+				in.close();
+				return false;
+			}
 		}
 
 		// Set	<NUMBER>	as	the	next	competitor	to	start.
@@ -213,9 +260,10 @@ public class Shell
 				compNum = in.nextInt();
 				curRun.addRacer(compNum);
 			}
-			catch(InputMismatchException e){
+			catch(Exception e){
+				errorMessage = "Missing or invalid argument";
+				in.close();
 				return false;
-
 			}
 		}
 
@@ -224,10 +272,15 @@ public class Shell
 		{
 			try{ 
 				compNum = in.nextInt();
-				if(competitors.contains(compNum))
-					competitors.remove(compNum);
+				if(!curRun.removeRacer(compNum)){
+					errorMessage = "racer "+ compNum +" not in this run";
+					in.close();
+					return false;
+				}
 			}
-			catch(InputMismatchException e){
+			catch(Exception e){
+				errorMessage = "Missing or invalid argument";
+				in.close();
 				return false;
 			}
 		}
@@ -235,7 +288,9 @@ public class Shell
 		// Exchange	next	two	competitors	to	finish in	IND
 		else if(commandToken.equalsIgnoreCase("swap"))
 		{
-			if(curRun.swap()){
+			if(!curRun.swap()){
+				errorMessage = "less than 2 racers in the finish queue";
+				in.close();
 				return false;
 			}
 		}
@@ -243,7 +298,11 @@ public class Shell
 		// The	next	competitor	to	finish	will	not	finish
 		else if(commandToken.equalsIgnoreCase("dnf"))
 		{
-			chan.trigger(2);
+			if(!curRun.setDNF()){
+				errorMessage = "no racers in the finish queue";
+				in.close();
+				return false;
+			}
 		}
 
 		// Trigger	channel	<NUM>
@@ -251,18 +310,11 @@ public class Shell
 		{
 			try{
 				chanNum = in.nextInt();
-
-				if(chanNum == 1){
-					eventCodes.add(time.getCurrentTimeStamp() + "<competitor " + competitors.get(nextStart++) + "> TRIG" + chanNum); 
-				}
-				else if(chanNum ==2){
-					eventCodes.add(time.getCurrentTimeStamp() + "<competitor " + competitors.get(nextStart++) + "> TRIG" + chanNum);
-				}
-				else 
-					return false;
-				chan.trigger(chanNum);
+				curRun.trigger(chanNum);
 			}
 			catch(InputMismatchException e){
+				errorMessage = "invalid argument";
+				in.close();
 				return false;
 			}
 		}
@@ -270,27 +322,28 @@ public class Shell
 		// Start	trigger	channel	1 (shorthand	for	TRIG	1)
 		else if(commandToken.equalsIgnoreCase("start"))
 		{
-			if(nextStart>=competitors.size() || nextStart<0){
-				// TODO: if a valid command is entered that is not yet acceptable, just return false?  
+			if(!curRun.trigger(1)){
+				errorMessage = "no racers in the start queue";
+				in.close();
 				return false;
 			}
-			chan.trigger(1);
-			eventCodes.add(time.getCurrentTimeStamp() + " competitor" +competitors.get(nextStart++) +" START");
 
 		}
 
 		// Finish	trigger	channel	2 (shorthand	for	TRIG	2)
 		else if(commandToken.equalsIgnoreCase("finish"))
 		{
-			if(nextFinish>=competitors.size() || nextFinish<0){
-				//not yet acceptable
+			if(!curRun.trigger(2)){
+				errorMessage = "no racers waiting to finish";
+				in.close();
 				return false;
 			}
-			chan.trigger(2);
-			eventCodes.add(time.getCurrentTimeStamp() + " competitor" +competitors.get(nextFinish++) +" FINISH");
+
 		}
 		else
 		{
+			in.close();
+			errorMessage = "Command not recognized";
 			return false;
 		}
 
@@ -298,33 +351,55 @@ public class Shell
 		return true;
 	}
 
-	/*
-	 * Input -> File file = new File("test.txt");
-	 */
+	private boolean export(Run run){
+		Scanner stdin = new Scanner(System.in);
+		System.out.print("Enter a file to export to: ");
 
-	/**
-	 * readCommandTextFile reads a file f (text document) and processes the command
-	 * @param f
-	 */
-	public void readCommandTextFile(File f)
-	{
-		try
-		{
-			Scanner in = new Scanner(f);
-
-			while(in.hasNextLine())
-			{
-				readCommandLine(in.nextLine());
+		File file = new File(stdin.nextLine());
+		char replace = 'n';
+		while(file.exists() && Character.toLowerCase(replace) != 'y'){
+			System.out.print("File already exists. \nOverwrite -> o\nRename -> r\n Cancel -> c\n");
+			replace = stdin.next().charAt(0);
+			if(Character.toLowerCase(replace) == 'c'){
+				stdin.close();
+				return true;
 			}
 
-			in.close();
 		}
-		catch(FileNotFoundException e){
-			e.printStackTrace();
+		stdin.close();
+		Gson g = new Gson();
+		JsonObject jso = new JsonObject();
+		ArrayList<JsonObject> jsObjects =  new ArrayList<JsonObject>();
+		ArrayList<Racer> racers =  run.getRacers();
+		Time t = new Time();
+		for(Racer r : racers){
+			jso.addProperty("Number", r.getNumber());
+			if(r.started())
+				jso.addProperty("Start", t.convertToTimestamp(r.getStart()));
+			else
+				jso.addProperty("Start", "");
+			if(r.finished()){
+				jso.addProperty("Finish", t.convertToTimestamp(r.getFinish()));
+				jso.addProperty("Run Time", t.convertToTimestamp(r.getRunTime()));
+			}
+			else{
+				jso.addProperty("Finish", "");
+				jso.addProperty("Run Time", "DNF");
+			}
+			jsObjects.add(jso);
 		}
+		String output = g.toJson(jsObjects);
+		try{
+		FileWriter writer = new FileWriter(file);
+		writer.write(output);
+		writer.close();
+		return true;
+		} catch(IOException e){
+			errorMessage = "There was an error writing to file:\n"+e.getMessage();
+			return false;
+		}
+		
 	}
-
-	private boolean export(Run run){}
 	/**
 	 * Prints out results
 	 * @return File of messages
@@ -363,4 +438,5 @@ public class Shell
 			System.out.println(eventCodes.get(k));
 		}
 	}
+
 }
