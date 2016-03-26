@@ -1,12 +1,9 @@
 import java.io.File;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+
 
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
@@ -171,6 +168,9 @@ public class Shell
 //				TODO
 				String device = in.next();
 				int deviceNum = in.nextInt();
+				if(!curRun.getChannel(deviceNum)){
+					curRun.toggle(deviceNum);
+				}
 			}
 
 			// Disconnect	a	sensor from channel	<NUM>

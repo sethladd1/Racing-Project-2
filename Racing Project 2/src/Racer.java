@@ -41,7 +41,10 @@ public class Racer {
 		}
 		public long getRunTime()
 		{
-			return finishTime-startTime;
+			if(finished && started)
+				return finishTime-startTime;
+			else
+				return -1;
 		}
 		public boolean started()
 		{
