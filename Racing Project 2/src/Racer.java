@@ -1,48 +1,58 @@
 public class Racer {
 	
-		private long s, f;
-		private boolean dnf; 
+		private long startTime, finishTime;
+		private int number;
+		private boolean DNF; 
+		private boolean started, finished;
 
-		public int Racers (int number)
+		public Racer (int number)
 		{
-		
-			return number;
+			this.number=number;
+			startTime=-1;
+			finishTime=-1;
+			DNF=false;
+			started=false;
+			finished=false;
 		}
 		public void setStart (long start)
 		{
-			s=start;
+			startTime=start;
+			started= true;
 		}
 		public void setFinish (long finish)
 		{
-			f=finish;
+			finishTime=finish;
+			finished=true;
 		}
-		public void setDNF (boolean a)
+		public void setDNF (boolean dnf)
 		{
-			dnf=a;
+			DNF=dnf;
 		}
 		public long getStar()
 		{
-			return s;
+			return startTime;
 		}
 		public long getFinish()
 		{
-			return f;
+			return finishTime;
 		}
 		public long getRunTime()
 		{
-			return f-s;
+			return finishTime-startTime;
 		}
 		public boolean started()
 		{
-			return true;
+			
+			return started;
 		}
 		public boolean finished()
 		{
-			return true;
+			return finished;
 		}
 		public boolean DNF()
 		{
-			return true;
+			return DNF;
 		}
+
 		
 }
