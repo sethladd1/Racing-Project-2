@@ -15,6 +15,7 @@ public class Run {
 	private boolean running;
 	private boolean channels[];
 	private int runNum;
+	private boolean started;
 
 	public Run(int type, int runNum){
 		this.type=type;
@@ -23,11 +24,16 @@ public class Run {
 		startQueue = new ArrayList<Racer>();
 		finishQueue = new ArrayList<Racer>();
 		running = true;
+		started = false;
 		time = new Time();
+		channels = new boolean[4];
 	}
 	public boolean setType(int type){
-		this.type=type;
-		return true;
+		if(running && (type == 0 || type == 1)){
+			this.type=type;
+			return true;
+		}
+		return false;
 	}
 	public int getType(){
 		return type;
@@ -48,11 +54,11 @@ public class Run {
 		return false;
 	}
 	public void toggle (int channel){
-		if(channel<channels.length && channel>=0)
+		if(channel<=channels.length && channel>0)
 			channels[channel-1]=!channels[channel-1];
 	}
 	public boolean trigger (int channel){
-		if(channel == 1 || channel == 3){
+		if((channel == 1&&channels[1]) || (channel == 3&&channels[3])){
 			if(startQueue.isEmpty()){
 				return false;
 			}
@@ -60,7 +66,7 @@ public class Run {
 			finishQueue.add(startQueue.remove(0));
 			return true;
 		}
-		else if(channel == 1 || channel == 3){
+		else if((channel == 2&&channels[2]) || (channel == 4&&channels[4])){
 			if(finishQueue.isEmpty()){
 				return false;
 			}

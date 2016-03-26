@@ -191,6 +191,11 @@ public class Shell
 			// IND	|	PARIND	|	GRP	|	PARGRP
 			else if(commandToken.equalsIgnoreCase("event"))
 			{
+				if(!curRun.running()){
+					in.close();
+					errorMessage = "The current run has ended";
+					return false;
+				}
 				try{
 					String type = in.next();
 					if(type.equalsIgnoreCase("ind")){
