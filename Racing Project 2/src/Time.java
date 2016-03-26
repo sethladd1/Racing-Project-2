@@ -28,32 +28,38 @@ public class Time
 		if(start == 0){
 			return "00:00.00";
 		}
-		double e = (double)(System.currentTimeMillis()-start)/1000;
+		double e = (double)(System.currentTimeMillis()-start);
 		return convertToTimestamp(e);
 	}
-	private String convertToTimestamp(double elapsedInSecond){
+	public String convertToTimestamp(double elapsedInMilliseconds){
 		// get minutes elapsed
-		int min = (int)elapsedInSecond/60;
+		double elapsedsec = elapsedInMilliseconds/1000;
+		int h = (int)(elapsedsec/(60*60));
+		int min = (int)((elapsedsec%(60*60))/60);
 		// get remaining sec
-		double r = elapsedInSecond%60;
+		double r = (elapsedsec%(60*60))%60;
 		//format seconds to hundredth precision
-		String sec = Double.toString(r);
-		String.format("%1$.2f", sec);
-		return Integer.toString(min)+":"+sec ;
+		String sec = String.format("%1$.2f", r);
+		return Integer.toString(h)+ ":" + Integer.toString(min)+":"+sec ;
 		
 	}
-	public Time stringToTime(String s)
-	{
-		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\.[0-9]+");
+	public boolean stringToTime(String s){
+		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\:[0-9]+");
 		Matcher matcher = p.matcher(s);
 		if(matcher.matches()){
 			String arr[] = matcher.group().split("\\:");
-			return new Time(0, Integer.parseInt(arr[0]), Integer.parseInt(arr[1].split("\\.")[0]), Integer.parseInt(arr[1].split("\\.")[1]));
+			if(arr.length>2){
+				try{
+					setCurrent(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]), Integer.parseInt(arr[2]), 0);
+					return true;
+				} catch(NumberFormatException e){
+					return false;
+				}
+			}
 		}
-		else{
-			return new Time();
-		}
+		return false;
 	}
+
 	
 }
 
