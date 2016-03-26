@@ -281,7 +281,17 @@ public class Shell
 			{
 				try{ 
 					compNum = in.nextInt();
-					curRun.addRacer(compNum);
+					if(curRun.running())
+					{
+						errorMessage = "Run has ended";
+						in.close();
+						return false;
+					}
+					if(!curRun.addRacer(compNum)){
+						errorMessage = "Racer was already added";
+					in.close();
+					return false;
+					}
 				}
 				catch(Exception e){
 					errorMessage = "Missing or invalid argument";

@@ -14,6 +14,9 @@ public class Racer {
 			started=false;
 			finished=false;
 		}
+		public int getNumber(){
+			return number;
+		}
 		public void setStart (long start)
 		{
 			startTime=start;
@@ -28,7 +31,7 @@ public class Racer {
 		{
 			DNF=dnf;
 		}
-		public long getStar()
+		public long getStart()
 		{
 			return startTime;
 		}

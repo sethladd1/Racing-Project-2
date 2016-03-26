@@ -43,6 +43,9 @@ public class Time
 		return Integer.toString(h)+ ":" + Integer.toString(min)+":"+sec ;
 		
 	}
+	public long elapsed(){
+		return System.currentTimeMillis()-start;
+	}
 	public boolean stringToTime(String s){
 		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\:[0-9]+");
 		Matcher matcher = p.matcher(s);
