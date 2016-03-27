@@ -3,7 +3,6 @@ import java.io.File;
 
 
 import java.io.FileNotFoundException;
-
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
@@ -11,8 +10,6 @@ import java.util.Scanner;
 import java.util.regex.*;
 public class Shell
 {
-	//	private ArrayList<String> debugMessages = new ArrayList<String>();
-
 	private ArrayList<Run> runs;
 	private Run curRun;
 	private boolean power = true;
@@ -23,19 +20,6 @@ public class Shell
 		Scanner in;
 		String cmdLine = "";
 		boolean exit = false;
-		try{
-			File file = new File(filePath);
-			in =  new Scanner(file);
-			while(in.hasNextLine()){
-				cmdLine = in.nextLine();
-				if(readCommand(cmdLine)){
-					System.out.println("line" + cmdLine + "not read");
-				}
-			}
-		}catch(FileNotFoundException e){
-			System.out.println("File not found.");
-		}
-
 		while(!exit)
 		{
 			System.out.print("CMD> ");
@@ -64,8 +48,22 @@ public class Shell
 				exit = true;
 		}
 	}
-	public Run getCurrentRun(){
-		return curRun;
+	public void readCommandsFromFile(String filePath){
+		Scanner in;
+		String cmdLine;
+		try{
+			File file = new File(filePath);
+			in =  new Scanner(file);
+			while(in.hasNextLine()){
+				cmdLine = in.nextLine();
+				if(readCommand(cmdLine)){
+					System.out.println("line" + cmdLine + "not read." + "Error message: " + errorMessage);
+				}
+			}
+			in.close();
+		}catch(FileNotFoundException e){
+			System.out.println("File not found.");
+		}
 	}
 	/**
 	 * @param line - line to be processed
@@ -86,15 +84,6 @@ public class Shell
 			curRun.setTime(0, Integer.parseInt(s[0]), Integer.parseInt(s[1].split("\\.")[0]), 10*Integer.parseInt(s[1].split("\\.")[1]));;
 			commandToken = in.next();
 		}
-
-		//		if(commandToken.equalsIgnoreCase("debug"))
-		//		{
-		//			System.out.println("---- Printing Debug Messages ----");
-		//			for(String s : debugMessages)
-		//				System.out.println(s);
-		//			System.out.println("---------------------------------");
-		//		}
-
 		// Turn	system	on,	enter	quiescent	state
 		if(commandToken.equalsIgnoreCase("power"))
 		{
@@ -112,14 +101,13 @@ public class Shell
 			// Exit	the	simulator
 			if(commandToken.equalsIgnoreCase("exit"))
 			{
-				//			debugMessages.add("Simulator Exiting...");
 				System.exit(0);
 			}
 
 			// Resets	the	System	to	initial	state
 			else if(commandToken.equalsIgnoreCase("reset"))
 			{
-				//			debugMessages.add(sim.reset());
+				
 				runs = new ArrayList<Run>();
 				curRun = new Run(IND, 1);
 				runs.add(curRun);
@@ -151,7 +139,7 @@ public class Shell
 				try{
 					chanNum = in.nextInt();
 					curRun.toggle(chanNum);
-					//				debugMessages.add(time.getCurrentTimeStamp() + "<competitor " + competitors.get(nextStart) + "> TROG" + chanNum); 
+					 
 				}
 				catch(InputMismatchException e){
 					errorMessage = "Invalid or missing argument";
@@ -392,5 +380,14 @@ public class Shell
 			in.close();
 			return false;
 		}
+	}
+	public boolean getPower(){
+		return power;
+	}
+	public String getErrorMessage(){
+		return errorMessage;
+	}
+	public Run getCurrentRun(){
+		return curRun;
 	}
 }

@@ -8,8 +8,8 @@ public class TestRun extends TestCase {
 	Run r;
 	protected void setUp() throws Exception {
 		super.setUp();
-		Run r = new Run(0,1);
-		ArrayList<Racer> racers = r.getRacers();
+		r = new Run(0,1);
+		racers = r.getRacers();
 		assertTrue(r.running());
 
 		assertFalse(r.getChannel(1));
@@ -45,7 +45,7 @@ public class TestRun extends TestCase {
 		assertTrue(r.trigger(2));
 		assertFalse(r.trigger(2));
 		assertTrue(racers.get(0).finished());
-		assertTrue(racers.get(0).getRunTime()>=5000);
+		assertTrue("Was "+ racers.get(0).getRunTime(),racers.get(0).getRunTime()>=5000);
 		r.end();
 		assertFalse(r.running());
 	}

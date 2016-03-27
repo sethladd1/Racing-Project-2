@@ -62,6 +62,10 @@ public class Run {
 			if(startQueue.isEmpty()){
 				return false;
 			}
+			if(!started)
+				time.start();
+			started = true;
+			
 			startQueue.get(0).setStart(time.elapsed());
 			finishQueue.add(startQueue.remove(0));
 			return true;
@@ -70,16 +74,19 @@ public class Run {
 			if(finishQueue.isEmpty()){
 				return false;
 			}
+			if(!started)
+				time.start();
+			started =true;
 			finishQueue.get(0).setFinish(time.elapsed());
 			finishQueue.remove(0);
 			return true;
 		}
 		return false;
 	}
-	ArrayList<Racer> getRacers (){
+	public ArrayList<Racer> getRacers (){
 		return racers;
 	}
-	boolean addRacer (int number){
+	public boolean addRacer (int number){
 		if(running){
 			for(Racer r : racers){
 				if(r.getNumber() == number){
