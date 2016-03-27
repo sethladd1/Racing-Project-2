@@ -10,6 +10,7 @@ public class Driver {
 		else{
 			shell = new Shell();
 		}
+		shell.commandPromptLoop();
 	}
 
 }

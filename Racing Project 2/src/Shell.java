@@ -12,27 +12,22 @@ public class Shell
 {
 	private ArrayList<Run> runs;
 	private Run curRun;
-	private boolean power = true;
+	private boolean power;
 	private int IND=0, PARIND=1;
 	private String errorMessage;
 	public Shell(String filePath)
 	{
-		Scanner in;
-		String cmdLine = "";
-		boolean exit = false;
-		while(!exit)
-		{
-			System.out.print("CMD> ");
-			in = new Scanner(System.in);
-			cmdLine = in.nextLine();
-
-			if(!readCommand(cmdLine))
-				System.out.println(errorMessage);
-			if(cmdLine.equalsIgnoreCase("exit"))
-				exit = true;
-		}
+		curRun = new Run(0,1);
+		power = true;
+		runs = new ArrayList<Run>();
+		readCommandsFromFile(filePath);
 	}
 	public Shell(){
+		curRun = new Run(0,1);
+		power = true;
+		runs = new ArrayList<Run>();
+	}
+	public void commandPromptLoop(){
 		Scanner in;
 		String cmdLine = "";
 		boolean exit = false;
