@@ -26,7 +26,7 @@ public class Time
 	}
 	public String getCurrentTimeStamp(){
 		if(start == 0){
-			return "00:00.00";
+			return "0:0:0.0";
 		}
 		double e = (double)(System.currentTimeMillis()-start);
 		return convertToTimestamp(e);
@@ -46,6 +46,11 @@ public class Time
 	public long elapsed(){
 		return System.currentTimeMillis()-start;
 	}
+	/**
+	 * 
+	 * @param s - a time stamp in the form <hour>:<min>:<sec> where <hour>,<min>,and <sec> are integers
+	 * @return true if the string is of the right form
+	 */
 	public boolean stringToTime(String s){
 		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\:[0-9]+");
 		Matcher matcher = p.matcher(s);
