@@ -10,6 +10,16 @@ public class TestRun extends TestCase {
 		super.setUp();
 		r = new Run(0,1);
 		racers = r.getRacers();
+	;
+	}
+	public void testOneRacer(){
+		
+		try {
+			setUp();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		assertTrue(r.running());
 
 		assertFalse(r.getChannel(1));
@@ -24,15 +34,6 @@ public class TestRun extends TestCase {
 		assertFalse(r.getChannel(4));
 		r.toggle(4);
 		assertTrue(r.getChannel(4));
-	}
-	public void testOneRacer(){
-		
-		try {
-			setUp();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		r.addRacer(111);
 
 		assertEquals(1, racers.size());
@@ -56,6 +57,21 @@ public class TestRun extends TestCase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		assertTrue(r.running());
+
+		assertFalse(r.getChannel(1));
+		r.toggle(1);
+		assertTrue(r.getChannel(1));
+		assertFalse(r.getChannel(2));
+		r.toggle(2);
+		assertTrue(r.getChannel(2));
+		assertFalse(r.getChannel(3));
+		r.toggle(3);
+		assertTrue(r.getChannel(3));
+		assertFalse(r.getChannel(4));
+		r.toggle(4);
+		assertTrue(r.getChannel(4));
+		
 		assertTrue(r.addRacer(111));
 		assertTrue(r.addRacer(112));
 		assertTrue(r.addRacer(113));

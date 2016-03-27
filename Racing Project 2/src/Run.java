@@ -58,7 +58,7 @@ public class Run {
 			channels[channel-1]=!channels[channel-1];
 	}
 	public boolean trigger (int channel){
-		if((channel == 1&&channels[1]) || (channel == 3&&channels[3])){
+		if((channel == 1&&channels[0]) || (channel == 3&&channels[2])){
 			if(startQueue.isEmpty()){
 				return false;
 			}
@@ -70,7 +70,7 @@ public class Run {
 			finishQueue.add(startQueue.remove(0));
 			return true;
 		}
-		else if((channel == 2&&channels[2]) || (channel == 4&&channels[4])){
+		else if((channel == 2&&channels[1]) || (channel == 4&&channels[3])){
 			if(finishQueue.isEmpty()){
 				return false;
 			}
@@ -179,7 +179,7 @@ public class Run {
 
 	}
 
-	public void print(Run run)
+	public void print()
 	{
 		System.out.println("\tRUN " + runNum);;
 		for(Racer r : racers){

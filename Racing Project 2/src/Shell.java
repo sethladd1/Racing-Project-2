@@ -269,7 +269,7 @@ public class Shell
 			{
 				try{ 
 					compNum = in.nextInt();
-					if(curRun.running())
+					if(!curRun.running())
 					{
 						errorMessage = "Run has ended";
 						in.close();
