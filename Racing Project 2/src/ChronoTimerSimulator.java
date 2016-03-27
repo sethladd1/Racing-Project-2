@@ -1,6 +1,5 @@
 
-public class Driver {
-
+public class ChronoTimerSimulator {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Shell shell;
@@ -12,5 +11,4 @@ public class Driver {
 		}
 		shell.commandPromptLoop();
 	}
-
 }
