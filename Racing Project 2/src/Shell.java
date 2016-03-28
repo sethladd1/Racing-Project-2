@@ -51,8 +51,8 @@ public class Shell
 			in =  new Scanner(file);
 			while(in.hasNextLine()){
 				cmdLine = in.nextLine();
-				if(readCommand(cmdLine)){
-					System.out.println("line" + cmdLine + "not read." + "Error message: " + errorMessage);
+				if(!readCommand(cmdLine)){
+					System.out.println("line: " + cmdLine + " not read. Error message: " + errorMessage);
 				}
 			}
 			in.close();
@@ -72,11 +72,11 @@ public class Shell
 		int chanNum, runNum, compNum;
 		//all commands from file are preceded with timestamp.
 		//I use regex to find out if string is timestamp,set time, and grab next token
-		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\.[0-9]+");
+		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\:[0-9]+\\.{0,1}[0-9]*");;
 		Matcher matcher = p.matcher(commandToken);
 		if(matcher.matches()){
-			String s[] = matcher.group().split("\\:");
-			curRun.setTime(0, Integer.parseInt(s[0]), Integer.parseInt(s[1].split("\\.")[0]), 10*Integer.parseInt(s[1].split("\\.")[1]));;
+			if(curRun.running())
+				curRun.setTime(matcher.group());
 			commandToken = in.next();
 		}
 		// Turn	system	on,	enter	quiescent	state
@@ -91,6 +91,21 @@ public class Shell
 			in.close();
 			return true;
 
+		}
+		else if(commandToken.equalsIgnoreCase("on")){
+			if(!power){
+				runs = new ArrayList<Run>();
+				curRun = new Run(IND, 1);
+				runs.add(curRun);
+			}
+			power = true;
+			in.close();
+			return true;
+		}
+		else if(commandToken.equalsIgnoreCase("off")){
+			power = false;
+			in.close();
+			return true;
 		}
 		else if(power){
 			// Exit	the	simulator
@@ -148,12 +163,9 @@ public class Shell
 			// <sensor>	=	{EYE,	GATE,	PAD}
 			else if(commandToken.equalsIgnoreCase("conn"))
 			{
-//				TODO
 				String device = in.next();
-				int deviceNum = in.nextInt();
-				if(!curRun.getChannel(deviceNum)){
-					curRun.toggle(deviceNum);
-				}
+				chanNum = in.nextInt();
+				curRun.connect(device, chanNum);
 			}
 
 			// Disconnect	a	sensor from channel	<NUM>
@@ -161,9 +173,7 @@ public class Shell
 			{
 				try{
 					chanNum = in.nextInt();
-					if(curRun.getChannel(chanNum)){
-						curRun.toggle(chanNum);
-					}
+					curRun.connect("", chanNum);
 				}catch(Exception e){
 					errorMessage = "Missing or invalid argument";
 					in.close();
@@ -207,7 +217,17 @@ public class Shell
 			{
 				if(curRun.running()){
 					in.close();
+					errorMessage = "must end current run before starting a new run";
 					return false;
+				}
+				else{
+					Run newRun = new Run(0, curRun.getRunNum()+1);
+					for(int i=1;i<5;++i){
+						newRun.connect(curRun.getSensor(i), i);
+						newRun.setChannelState(i, curRun.getChannel(i));
+					}
+					curRun = newRun;
+					runs.add(curRun);
 				}
 
 
@@ -226,13 +246,17 @@ public class Shell
 					runNum = in.nextInt();
 					for(Run r : runs){
 						if(r.getRunNum() == runNum){
-
+							r.print();
+							System.out.print("\n\n\n");
+							in.close();
+							return true;
 						}
 					}
 				}catch(Exception e){
-					errorMessage = "Missing or invalid argument";
+					curRun.print();
+					System.out.print("\n\n\n");
 					in.close();
-					return false;
+					return true;
 				}
 			}
 
@@ -242,14 +266,16 @@ public class Shell
 				try
 				{
 					runNum = in.nextInt();
+					in.close();
 					for(Run r : runs){
 						if(r.getRunNum() == runNum){
-							in.close();
-							File file = new File("Run"+runNum);
+							File file = new File("RUN"+runNum);
 							errorMessage = r.export(file);
 							if(!errorMessage.isEmpty()){
 								return false;
 							}
+							System.out.println("exported run "+runNum+" to file ./RUN"+runNum);
+							return true;
 
 						}
 					}
@@ -331,7 +357,18 @@ public class Shell
 			{
 				try{
 					chanNum = in.nextInt();
-					curRun.trigger(chanNum);
+					if(!curRun.getSensor(chanNum).isEmpty()){
+						curRun.trigger(chanNum);
+					}
+					else{
+						if(chanNum>0 && chanNum<5)
+							errorMessage = "no sensor attached to channel " + chanNum;
+						else
+							errorMessage = "invalid argument: no channel "+chanNum;
+						in.close();
+						return false;
+					}
+					
 				}
 				catch(InputMismatchException e){
 					errorMessage = "invalid argument";

@@ -14,6 +14,7 @@ public class Run {
 	private int type; //0=IND, 1=PARIND
 	private boolean running;
 	private boolean channels[];
+	private String sensors[];
 	private int runNum;
 	private boolean started;
 
@@ -27,6 +28,7 @@ public class Run {
 		started = false;
 		time = new Time();
 		channels = new boolean[4];
+		sensors = new String[4];
 	}
 	public boolean setType(int type){
 		if(running && (type == 0 || type == 1)){
@@ -42,13 +44,20 @@ public class Run {
 		return runNum;
 	}
 	public boolean setTime (String time){
-		return this.time.stringToTime(time);
+		boolean timeSet = false;
+		if(running){
+		timeSet = this.time.stringToTime(time);
+		if(timeSet)
+			started = true;
+		}
+		return timeSet;
 	}
 
 	public boolean setTime (int H, int M, int S, int mS)
 	{
 		if(running){
 			time.setCurrent(H, M, S, mS);
+			started = true;
 			return true;
 		}
 		return false;
@@ -56,6 +65,27 @@ public class Run {
 	public void toggle (int channel){
 		if(channel<=channels.length && channel>0)
 			channels[channel-1]=!channels[channel-1];
+	}
+	public void setChannelState(int channel, boolean state){
+		if(channel<=channels.length && channel>0)
+			channels[channel-1]=state;
+	}
+	public boolean connect(String sensor, int channel){
+		if(channel<=channels.length && channel>0){
+			sensors[channel-1] = sensor;
+			return true;
+		}
+		else{
+			return false;
+		}
+			
+	}
+	public String getSensor(int channel){
+		if(channel<=channels.length && channel>0){
+			return sensors[channel-1];
+		}
+		else
+			return "";
 	}
 	public boolean trigger (int channel){
 		if((channel == 1&&channels[0]) || (channel == 3&&channels[2])){
@@ -152,6 +182,7 @@ public class Run {
 		ArrayList<JsonObject> jsObjects =  new ArrayList<JsonObject>();
 		String errorMessage = "";
 		for(Racer r : racers){
+			jso = new JsonObject();
 			jso.addProperty("Number", r.getNumber());
 			if(r.started())
 				jso.addProperty("Start", time.convertToTimestamp(r.getStart()));

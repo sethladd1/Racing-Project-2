@@ -22,6 +22,9 @@ public class TestTime extends TestCase {
 		start1 = System.currentTimeMillis();
 		t.stringToTime("01:5:6");
 		assertTrue((t.elapsed()>=3906000 && t.elapsed()<=3906000 + System.currentTimeMillis()-start1));
+		start1 = System.currentTimeMillis();
+		t.stringToTime("01:5:6.56");
+		assertTrue((t.elapsed()>=3906560 && t.elapsed()<=3906560 + System.currentTimeMillis()-start1));
 		
 	}
 }

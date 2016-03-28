@@ -6,10 +6,10 @@ import java.util.regex.Pattern;
 public class Time
 {
 	private long start;
-	
+
 	public Time()
 	{
-		
+
 	}
 	public Time(int H, int M, int S, int MS)
 	{
@@ -41,33 +41,51 @@ public class Time
 		//format seconds to hundredth precision
 		String sec = String.format("%1$.2f", r);
 		return Integer.toString(h)+ ":" + Integer.toString(min)+":"+sec ;
-		
+
 	}
 	public long elapsed(){
 		return System.currentTimeMillis()-start;
 	}
 	/**
 	 * 
-	 * @param s - a time stamp in the form <hour>:<min>:<sec> where <hour>,<min>,and <sec> are integers
+	 * @param s - a time stamp in the form <hour>:<min>:<sec> where <hour> and <min> are integers,and <sec> are integers
 	 * @return true if the string is of the right form
 	 */
-	public boolean stringToTime(String s){
-		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\:[0-9]+");
-		Matcher matcher = p.matcher(s);
+	public boolean stringToTime(String str){
+		Pattern p = Pattern.compile("[0-9]+\\:[0-9]+\\:[0-9]+\\.{0,1}[0-9]*");
+		Matcher matcher = p.matcher(str);
 		if(matcher.matches()){
-			String arr[] = matcher.group().split("\\:");
-			if(arr.length>2){
-				try{
-					setCurrent(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]), Integer.parseInt(arr[2]), 0);
-					return true;
-				} catch(NumberFormatException e){
-					return false;
+			String s[] = matcher.group().split("\\:");
+			try{
+				String dec;
+				String sec[] = s[2].split("\\.");
+				String seconds;
+				if(sec.length>1){
+					seconds = sec[0];
+					dec = sec[1];
+					if(dec.length()>3){
+						dec=dec.substring(0, 3);
+					}
+					else{
+						while(dec.length()<3){
+							dec=dec.concat("0");
+						}
+					}
 				}
+				else{
+					seconds = sec[0];
+					dec = "0";
+				}
+				setCurrent(Integer.parseInt(s[0]), Integer.parseInt(s[1]), Integer.parseInt(seconds), Integer.parseInt(dec));
+				return true;
+			} catch(NumberFormatException e){
+				return false;
+
 			}
 		}
 		return false;
 	}
 
-	
+
 }
 

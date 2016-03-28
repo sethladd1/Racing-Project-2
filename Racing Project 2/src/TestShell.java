@@ -73,6 +73,7 @@ public class TestShell extends TestCase {
 		assertTrue(shell.readCommand("endrun"));
 		r.print();
 		assertTrue(shell.readCommand("newrun"));
+		
 //		TODO check every command possible
 		
 	}
