@@ -107,17 +107,21 @@ public class Shell
 			in.close();
 			return true;
 		}
+		// Exit	the	simulator
+		else if(commandToken.equalsIgnoreCase("exit"))
+		{
+			System.exit(0);
+			in.close();
+			return true;
+		}
 		else if(power){
-			// Exit	the	simulator
-			if(commandToken.equalsIgnoreCase("exit"))
-			{
-				System.exit(0);
-			}
+			
+
 
 			// Resets	the	System	to	initial	state
-			else if(commandToken.equalsIgnoreCase("reset"))
+			if(commandToken.equalsIgnoreCase("reset"))
 			{
-				
+
 				runs = new ArrayList<Run>();
 				curRun = new Run(IND, 1);
 				runs.add(curRun);
@@ -128,14 +132,14 @@ public class Shell
 			else if(commandToken.equalsIgnoreCase("time"))
 			{
 				try{
-				String time = in.next();
-				in.close();
-				if(curRun.setTime(time))
-					return true;
-				else{
+					String time = in.next();
+					in.close();
+					if(curRun.setTime(time))
+						return true;
+					else{
 						errorMessage = "Invalid argument. Time format: <hour>:<min>:<sec>";
-					return false;
-				}
+						return false;
+					}
 				}catch(NoSuchElementException e){
 					errorMessage = "Missing argument";
 					return false;
@@ -149,7 +153,7 @@ public class Shell
 				try{
 					chanNum = in.nextInt();
 					curRun.toggle(chanNum);
-					 
+
 				}
 				catch(InputMismatchException e){
 					errorMessage = "Invalid or missing argument";
@@ -303,8 +307,8 @@ public class Shell
 					}
 					if(!curRun.addRacer(compNum)){
 						errorMessage = "Racer was already added";
-					in.close();
-					return false;
+						in.close();
+						return false;
 					}
 				}
 				catch(Exception e){
@@ -368,7 +372,7 @@ public class Shell
 						in.close();
 						return false;
 					}
-					
+
 				}
 				catch(InputMismatchException e){
 					errorMessage = "invalid argument";
