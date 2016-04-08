@@ -10,9 +10,10 @@ import com.google.gson.JsonObject;
 
 public class Run {
 	private ArrayList<Racer> racers, startQueue, finishQueue, startQueue2, finishQueue2;
+	ArrayList<String> grpRanks;
 	private Time time;
 	private int type; //0=IND, 1=PARIND
-	private int IND=0,PARIND=1;
+	private final int IND=0,PARIND=1, GRP = 2;
 	private int chan;
 	private boolean running;
 	private boolean channels[];
@@ -28,6 +29,7 @@ public class Run {
 		finishQueue = new ArrayList<Racer>();
 		startQueue2 = new ArrayList<Racer>();
 		finishQueue2 = new ArrayList<Racer>();
+		grpRanks = new ArrayList<String>();
 		chan = 0;
 		running = true;
 		started = false;
@@ -36,7 +38,7 @@ public class Run {
 		sensors = new String[4];
 	}
 	public boolean setType(int type){
-		if(running && (type == 0 || type == 1)){
+		if(running && (type == IND || type == PARIND || type == GRP)){
 			this.type=type;
 			return true;
 		}
@@ -93,7 +95,8 @@ public class Run {
 			return "";
 	}
 	public boolean trigger (int channel){
-		if(type == IND){
+		switch(type){
+		case IND:
 			if((channel == 1&&channels[0])){
 				if(startQueue.isEmpty()){
 					return false;
@@ -117,8 +120,8 @@ public class Run {
 				finishQueue.remove(0);
 				return true;
 			}
-		}
-		else if(type == PARIND){
+			return false;
+		case PARIND:
 			if((channel == 1&&channels[0])){
 				if(startQueue.isEmpty()){
 					return false;
@@ -165,9 +168,31 @@ public class Run {
 				finishQueue2.remove(0);
 				return true;
 			}
+			return false;
+		case GRP:
+			if(channel == 1&& channels[0]){
+				if(started) 
+					return false;
+				else{
+					time.start();
+					started = true;
+					return true;
+				}
+			}
+			if(channel == 2 && channels[1]){
+				if(started){
+					grpRanks.add(time.convertToTimestamp((double)time.elapsed()));
+					return true;
+				}
+				else
+					return false;
+			}
+			return false;
+		default:
+			return false;
 		}
-		return false;
 	}
+	
 	public ArrayList<Racer> getRacers (){
 		return racers;
 	}
@@ -197,7 +222,7 @@ public class Run {
 		return running;
 	}
 	public boolean setDNF(){
-		
+
 		if(type == IND && finishQueue.size()>0){
 			finishQueue.get(0).setDNF(true);
 			finishQueue.remove(0);
@@ -218,8 +243,13 @@ public class Run {
 		for(Racer r : racers){
 			if(r.getNumber() == racerNum){
 				racers.remove(r);
-				startQueue.remove(r);
-				finishQueue.remove(r);
+				if(!startQueue.remove(r)){
+					if(!finishQueue.remove(r)){
+						if(!startQueue2.remove(r)){
+							finishQueue.remove(r);
+						}
+					}
+				}
 				return true;
 			}
 		}
