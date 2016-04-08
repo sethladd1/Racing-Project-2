@@ -197,7 +197,8 @@ public class Run {
 		return running;
 	}
 	public boolean setDNF(){
-		if(finishQueue.size()>0){
+		
+		if(type == IND && finishQueue.size()>0){
 			finishQueue.get(0).setDNF(true);
 			finishQueue.remove(0);
 			return true;
@@ -226,7 +227,7 @@ public class Run {
 	}
 
 	public boolean swap(){
-		if(finishQueue.size()<2)
+		if(finishQueue.size()<2 || type != IND)
 			return false;
 		Racer hold = finishQueue.get(0);
 		finishQueue.set(0, finishQueue.get(1));
