@@ -9,9 +9,11 @@ import com.google.gson.JsonObject;
 
 
 public class Run {
-	private ArrayList<Racer> racers, startQueue, finishQueue;
+	private ArrayList<Racer> racers, startQueue, finishQueue, startQueue2, finishQueue2;
 	private Time time;
 	private int type; //0=IND, 1=PARIND
+	private int IND=0,PARIND=1;
+	private int chan;
 	private boolean running;
 	private boolean channels[];
 	private String sensors[];
@@ -24,6 +26,9 @@ public class Run {
 		racers = new ArrayList<Racer>();
 		startQueue = new ArrayList<Racer>();
 		finishQueue = new ArrayList<Racer>();
+		startQueue2 = new ArrayList<Racer>();
+		finishQueue2 = new ArrayList<Racer>();
+		chan = 0;
 		running = true;
 		started = false;
 		time = new Time();
@@ -46,9 +51,9 @@ public class Run {
 	public boolean setTime (String time){
 		boolean timeSet = false;
 		if(running){
-		timeSet = this.time.stringToTime(time);
-		if(timeSet)
-			started = true;
+			timeSet = this.time.stringToTime(time);
+			if(timeSet)
+				started = true;
 		}
 		return timeSet;
 	}
@@ -78,7 +83,7 @@ public class Run {
 		else{
 			return false;
 		}
-			
+
 	}
 	public String getSensor(int channel){
 		if(channel<=channels.length && channel>0){
@@ -88,28 +93,78 @@ public class Run {
 			return "";
 	}
 	public boolean trigger (int channel){
-		if((channel == 1&&channels[0]) || (channel == 3&&channels[2])){
-			if(startQueue.isEmpty()){
-				return false;
+		if(type == IND){
+			if((channel == 1&&channels[0])){
+				if(startQueue.isEmpty()){
+					return false;
+				}
+				if(!started)
+					time.start();
+				started = true;
+
+				startQueue.get(0).setStart(time.elapsed());
+				finishQueue.add(startQueue.remove(0));
+				return true;
 			}
-			if(!started)
-				time.start();
-			started = true;
-			
-			startQueue.get(0).setStart(time.elapsed());
-			finishQueue.add(startQueue.remove(0));
-			return true;
+			else if((channel == 2&&channels[1])){
+				if(finishQueue.isEmpty()){
+					return false;
+				}
+				if(!started)
+					time.start();
+				started =true;
+				finishQueue.get(0).setFinish(time.elapsed());
+				finishQueue.remove(0);
+				return true;
+			}
 		}
-		else if((channel == 2&&channels[1]) || (channel == 4&&channels[3])){
-			if(finishQueue.isEmpty()){
-				return false;
+		else if(type == PARIND){
+			if((channel == 1&&channels[0])){
+				if(startQueue.isEmpty()){
+					return false;
+				}
+				if(!started)
+					time.start();
+				started = true;
+
+				startQueue.get(0).setStart(time.elapsed());
+				finishQueue.add(startQueue.remove(0));
+				return true;
 			}
-			if(!started)
-				time.start();
-			started =true;
-			finishQueue.get(0).setFinish(time.elapsed());
-			finishQueue.remove(0);
-			return true;
+			else if((channel == 3&&channels[2])){
+				if(startQueue2.isEmpty()){
+					return false;
+				}
+				if(!started)
+					time.start();
+				started = true;
+
+				startQueue2.get(0).setStart(time.elapsed());
+				finishQueue2.add(startQueue2.remove(0));
+				return true;
+			}
+			else if((channel == 2&&channels[1])){
+				if(finishQueue.isEmpty()){
+					return false;
+				}
+				if(!started)
+					time.start();
+				started =true;
+				finishQueue.get(0).setFinish(time.elapsed());
+				finishQueue.remove(0);
+				return true;
+			}
+			else if (channel == 4&&channels[3]){
+				if(finishQueue2.isEmpty()){
+					return false;
+				}
+				if(!started)
+					time.start();
+				started =true;
+				finishQueue2.get(0).setFinish(time.elapsed());
+				finishQueue2.remove(0);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -125,7 +180,14 @@ public class Run {
 			}
 			Racer r = new Racer(number);
 			racers.add(r);
-			startQueue.add(r);
+			if(chan == 0){
+				startQueue.add(r);
+				chan = 1;
+			}
+			else if(chan == 1){
+				startQueue2.add(r);
+				chan = 0;
+			}
 			return true;
 		}
 		return false;
