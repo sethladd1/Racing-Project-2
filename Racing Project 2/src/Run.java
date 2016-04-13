@@ -20,7 +20,7 @@ public class Run {
 	private String sensors[];
 	private int runNum;
 	private boolean started;
-
+	private Racer lastFinish1, lastFinish2;
 	public Run(int type, int runNum){
 		this.type=type;
 		this.runNum=runNum;
@@ -154,7 +154,7 @@ public class Run {
 					time.start();
 				started =true;
 				finishQueue.get(0).setFinish(time.elapsed());
-				finishQueue.remove(0);
+				lastFinish1 = finishQueue.remove(0);
 				return true;
 			}
 			else if (channel == 4&&channels[3]){
@@ -165,7 +165,7 @@ public class Run {
 					time.start();
 				started =true;
 				finishQueue2.get(0).setFinish(time.elapsed());
-				finishQueue2.remove(0);
+				lastFinish2 = finishQueue2.remove(0);
 				return true;
 			}
 			return false;
@@ -192,11 +192,46 @@ public class Run {
 			return false;
 		}
 	}
-	
+
 	public ArrayList<Racer> getRacers (){
 		return racers;
 	}
+	/**
+	 * 
+	 * @return in IND races:the finish queue. in PARIND races: the finish queue associated with channel 1
+	 */
+	public ArrayList<Racer> getFinishQueue1 (){
+		return finishQueue;
+	}
+	/**
+	 * this is only useful in PARIND races
+	 * @return the finish queue associated with channel 2
+	 */
+	public ArrayList<Racer> getFinishQueue2 (){
+		return finishQueue2;
+	}
+	/**
+	 * 
+	 * @return in IND races:the start queue. in PARIND races: the start queue associated with channel 1
+	 */
+	public ArrayList<Racer> getStartQueue1 (){
+		return startQueue;
+	}
+	/**
+	 * this is only useful in PARIND races
+	 * @return the start queue associated with channel 2
+	 */
+	public ArrayList<Racer> getStartQueue2 (){
+		return startQueue2;
+	}
+	public Racer getLastFinisher1(){
+		return lastFinish1;
+	}
+	public Racer getLastFinisher2(){
+		return lastFinish2;
+	}
 	public boolean addRacer (int number){
+		//		TODO in GRP races, if racers are added they are associated with ranks in the order they are added 
 		if(running){
 			for(Racer r : racers){
 				if(r.getNumber() == number){
@@ -269,7 +304,7 @@ public class Run {
 		running = false;
 	}
 	public String export(File file){
-
+		//		TODO update this so export times in grpRanks if type is GRP, and associated racers from racers if they exist
 		Gson g = new Gson();
 		JsonObject jso = new JsonObject();
 		ArrayList<JsonObject> jsObjects =  new ArrayList<JsonObject>();
@@ -305,6 +340,7 @@ public class Run {
 
 	public void print()
 	{
+		//		TODO update this so it print times in grpRanks if type is GRP, and associated racers from racers if they exist
 		System.out.println("\tRUN " + runNum);;
 		for(Racer r : racers){
 			System.out.println("**************************");
