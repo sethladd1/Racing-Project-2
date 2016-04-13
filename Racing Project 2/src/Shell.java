@@ -11,10 +11,11 @@ import java.util.regex.*;
 public class Shell
 {
 	private ArrayList<Run> runs;
-	private Run curRun;
+	private static Run curRun;
 	private boolean power;
-	private int IND=0, PARIND=1;
+	private int IND=0, PARIND=1, GRP=2;
 	private String errorMessage;
+	private static GUI ui;
 	public Shell(String filePath)
 	{
 		curRun = new Run(0,1);
@@ -425,5 +426,15 @@ public class Shell
 	}
 	public Run getCurrentRun(){
 		return curRun;
+	}
+	/**
+	 * This method sets the shell's curRun to the GUI's curRun, 
+	 * so command triggered by shell and GUI have the same effect.
+	 * 
+	 */
+	public static void synchRuns(){
+		if(ui != null ){
+			curRun = ui.getCurrentRun();
+		}
 	}
 }

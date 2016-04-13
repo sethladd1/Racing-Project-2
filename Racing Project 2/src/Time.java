@@ -48,7 +48,7 @@ public class Time
 	}
 	/**
 	 * 
-	 * @param s - a time stamp in the form <hour>:<min>:<sec> where <hour> and <min> are integers,and <sec> are integers
+	 * @param str - a time stamp in the form <hour>:<min>:<sec> where <hour> and <min> are integers,and <sec> is floating point
 	 * @return true if the string is of the right form
 	 */
 	public boolean stringToTime(String str){

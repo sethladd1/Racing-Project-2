@@ -74,6 +74,7 @@ public class GUI extends JFrame{
 			else{
 				b = new JButton(String.valueOf(i+1));
 			}
+			numPad.add(b);
 		}
 		t = new Timer(100, new ActionListener(){
 
@@ -87,12 +88,10 @@ public class GUI extends JFrame{
 		setUpUI();
 
 	}
-	
 
 	private void setUpUI(){
-		//		set up north 
-		JPanel north = new JPanel();
-		north.setLayout(new BoxLayout(north, BoxLayout.Y_AXIS));
+		JPanel center = new JPanel();
+		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 		JPanel trigChanGrid = new JPanel();
 		GridLayout gridLayout =new GridLayout(6,5);
 		gridLayout.setHgap(5);
@@ -146,37 +145,33 @@ public class GUI extends JFrame{
 			trigChanGrid.add(channels.get(i));
 		}
 
-		north.add(title);
+		center.add(title);
 		Font f = title.getFont();
 		title.setHorizontalAlignment(JLabel.CENTER);
 		title.setFont(new Font(f.getName(), f.getStyle(), 16));
-		north.add(trigChanGrid);
+		center.add(trigChanGrid);
 
 
-
-
-
-		JPanel east = new JPanel();
-		BoxLayout blo = new BoxLayout(east, BoxLayout.Y_AXIS);
-
-		east.setAlignmentX(LEFT_ALIGNMENT);
-		east.setLayout(blo);
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
+		JPanel west = new JPanel();
+		BoxLayout blo = new BoxLayout(west, BoxLayout.Y_AXIS);
+		west.setAlignmentX(LEFT_ALIGNMENT);
+		west.setLayout(blo);
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
 		power.setAlignmentX(LEFT_ALIGNMENT);
-		east.add(power);
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
-		east.add(function);
+		west.add(power);
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(function);
 		function.setAlignmentX(LEFT_ALIGNMENT);
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
-		east.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
+		west.add(new JLabel("\n "));
 		JPanel arrows = new JPanel();
 		arrows.setLayout(new GridLayout(3,3));
 		arrows.add(new JLabel());
@@ -187,14 +182,32 @@ public class GUI extends JFrame{
 		arrows.add(right);
 		arrows.add(new JLabel());
 		arrows.add(down);
-		east.add(arrows);
-		add(east, BorderLayout.WEST);
-		north.add(display);
-		add(north, BorderLayout.CENTER);
-		setSize(400, 200);
+		west.add(arrows);
+		add(west, BorderLayout.WEST);
+		center.add(display);
+		add(center, BorderLayout.CENTER);
+		setSize(600, 400);
+//		TODO set up east panel as shown in requirements
 	}
-	
-	public boolean newRun(Run r){
+	/**
+	 * called by shell if a channel toggled to ensure it shows in the GUI
+	 */
+	public void syncChanIcons(){
+		for(int i=1;i<9; i++){
+			if(curRun.getChannel(i)){
+				channels.get(i-1).setIcon(enabled);
+			}
+			else{
+				channels.get(i-1).setIcon(disabled);
+			}
+		}
+	}
+	/**
+	 * called by shell when new run command is entered to ensure GUI and shell are working with the same run. 
+	 * @param r - the new current run
+	 * @return - true if current run has ended, else false
+	 */
+	public boolean setRun(Run r){
 		if(curRun.running()){
 			return false;
 		}
@@ -205,7 +218,7 @@ public class GUI extends JFrame{
 		return curRun;
 	}
 	private void updateDisplay(){
-//		TODO update the display using curRun's finishQueues, StartQueues, and lastFinishers
+//		TODO update the display as described in project requirements using curRun's finishQueues, StartQueues, and lastFinishers
 //		in PARIND runs we will display two list side by side
 	}
 	

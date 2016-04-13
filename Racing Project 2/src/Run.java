@@ -10,7 +10,7 @@ import com.google.gson.JsonObject;
 
 public class Run {
 	private ArrayList<Racer> racers, startQueue, finishQueue, startQueue2, finishQueue2;
-	ArrayList<String> grpRanks;
+	private ArrayList<Long> grpRanks;
 	private Time time;
 	private int type; //0=IND, 1=PARIND
 	private final int IND=0,PARIND=1, GRP = 2;
@@ -29,13 +29,13 @@ public class Run {
 		finishQueue = new ArrayList<Racer>();
 		startQueue2 = new ArrayList<Racer>();
 		finishQueue2 = new ArrayList<Racer>();
-		grpRanks = new ArrayList<String>();
+		grpRanks = new ArrayList<Long>();
 		chan = 0;
 		running = true;
 		started = false;
 		time = new Time();
-		channels = new boolean[4];
-		sensors = new String[4];
+		channels = new boolean[8];
+		sensors = new String[8];
 	}
 	public boolean setType(int type){
 		if(running && (type == IND || type == PARIND || type == GRP)){
@@ -68,6 +68,9 @@ public class Run {
 			return true;
 		}
 		return false;
+	}
+	public String getElapsedTime(){
+		return time.getCurrentTimeStamp();
 	}
 	public void toggle (int channel){
 		if(channel<=channels.length && channel>0)
@@ -181,7 +184,10 @@ public class Run {
 			}
 			if(channel == 2 && channels[1]){
 				if(started){
-					grpRanks.add(time.convertToTimestamp((double)time.elapsed()));
+					grpRanks.add(time.elapsed());
+					if(grpRanks.size()<=racers.size()){
+						racers.get(grpRanks.size()-1).setFinish(grpRanks.get(grpRanks.size()-1));
+					}
 					return true;
 				}
 				else
@@ -192,47 +198,53 @@ public class Run {
 			return false;
 		}
 	}
-
+	public ArrayList<Long> getGroupRanks(){
+		return grpRanks;
+	}
 	public ArrayList<Racer> getRacers (){
 		return racers;
 	}
 	/**
 	 * 
-	 * @return in IND races:the finish queue. in PARIND races: the finish queue associated with channel 1
+	 * @return in IND races:the finish queue. in PARIND races: the finish queue associated with channel 1&2
 	 */
 	public ArrayList<Racer> getFinishQueue1 (){
 		return finishQueue;
 	}
 	/**
 	 * this is only useful in PARIND races
-	 * @return the finish queue associated with channel 2
+	 * @return the finish queue associated with channel 3&4
 	 */
 	public ArrayList<Racer> getFinishQueue2 (){
 		return finishQueue2;
 	}
 	/**
 	 * 
-	 * @return in IND races:the start queue. in PARIND races: the start queue associated with channel 1
+	 * @return in IND races:the start queue. in PARIND races: the start queue associated with channel 1&2
 	 */
 	public ArrayList<Racer> getStartQueue1 (){
 		return startQueue;
 	}
 	/**
 	 * this is only useful in PARIND races
-	 * @return the start queue associated with channel 2
+	 * @return the start queue associated with channels 3&4 
 	 */
 	public ArrayList<Racer> getStartQueue2 (){
 		return startQueue2;
 	}
-	public Racer getLastFinisher1(){
+	/**
+	 * 
+	 * @return the last racer to finish on chan1
+	 */
+	public Racer getLastFinish1(){
 		return lastFinish1;
 	}
-	public Racer getLastFinisher2(){
+	
+	public Racer getLastFinish2(){
 		return lastFinish2;
 	}
 	public boolean addRacer (int number){
-		//		TODO in GRP races, if racers are added they are associated with ranks in the order they are added 
-		if(running){
+		if(running && type != GRP){
 			for(Racer r : racers){
 				if(r.getNumber() == number){
 					return false;
@@ -247,6 +259,25 @@ public class Run {
 			else if(chan == 1){
 				startQueue2.add(r);
 				chan = 0;
+			}
+			return true;
+		}
+		if(type==GRP){
+			for(Racer r : racers){
+				if(r.getNumber() == number){
+					return false;
+				}
+			}
+			Racer r = new Racer(number);
+			if(grpRanks.size()>racers.size()){
+				long t = grpRanks.get(racers.size());
+				r.setStart(0);
+				r.setFinish(t);
+				racers.add(r);
+			}
+			else{
+				r.setStart(0);
+				racers.add(r);				
 			}
 			return true;
 		}
@@ -266,7 +297,7 @@ public class Run {
 		return false;
 	}
 
-	// chan-1 is the index in channel because the channels are numbered 1-4
+	// chan-1 is the index in channels because the channels are numbered 1-4
 	public boolean getChannel(int chan){
 		if(chan<= channels.length && chan>0){
 			return channels[chan-1];
@@ -277,11 +308,18 @@ public class Run {
 
 		for(Racer r : racers){
 			if(r.getNumber() == racerNum){
+				if(type==GRP){
+					int index = racers.indexOf(r);
+					racers.remove(r);
+					for(;index<racers.size()&&index<grpRanks.size();++index){
+						racers.get(index).setFinish(grpRanks.get(index));
+					}
+				}
 				racers.remove(r);
 				if(!startQueue.remove(r)){
 					if(!finishQueue.remove(r)){
 						if(!startQueue2.remove(r)){
-							finishQueue.remove(r);
+							finishQueue2.remove(r);
 						}
 					}
 				}
@@ -304,7 +342,7 @@ public class Run {
 		running = false;
 	}
 	public String export(File file){
-		//		TODO update this so export times in grpRanks if type is GRP, and associated racers from racers if they exist
+		//		TODO update this so it exports times in grpRanks if type is GRP, associated with rank or racer nums if they exist
 		Gson g = new Gson();
 		JsonObject jso = new JsonObject();
 		ArrayList<JsonObject> jsObjects =  new ArrayList<JsonObject>();
@@ -338,26 +376,45 @@ public class Run {
 
 	}
 
-	public void print()
+	public String print()
 	{
-		//		TODO update this so it print times in grpRanks if type is GRP, and associated racers from racers if they exist
-		System.out.println("\tRUN " + runNum);;
-		for(Racer r : racers){
-			System.out.println("**************************");
-			System.out.println("\tRacer: " +r.getNumber());
-			System.out.println("**************************");
-			if(r.started())
-				System.out.println("Start: " +time.convertToTimestamp(r.getStart()));
-			else
-				System.out.println("Start: Did not start");
-			if(r.finished()){
-				System.out.println("Finish: " +time.convertToTimestamp(r.getFinish()));
-				System.out.println("Run Time: " +time.convertToTimestamp(r.getRunTime()));
-			}
-			else{
-				System.out.println("Finish: Did not finish");
-				System.out.println("Run Time: Did not finish");
+		String str = "\tRUN " + runNum+"\n";
+		if(type==GRP){
+			for(int i = 0;i<grpRanks.size();++i){
+				if(i<racers.size()){
+					Racer r = racers.get(1);
+					str+=r.getNumber()+": " + time.convertToTimestamp(racers.get(i).getFinish())+"\n";
+				}
+				else{
+					String rank = String.valueOf(i);
+					while(rank.length()<5){
+						rank="0"+rank;
+					}
+					str+=rank+": " +time.convertToTimestamp(grpRanks.get(i))+"\n";
+					
+				}
 			}
 		}
+		else{
+			for(Racer r : racers){
+				str+="**************************\n";
+				str+="\tRacer: " +r.getNumber()+"\n";
+				str+="**************************\n";
+
+				if(r.started())
+					str+="Start: " +time.convertToTimestamp(r.getStart())+"\n";
+				else
+					str+="Start: Did not start\n";
+				if(r.finished()){
+					str+="Finish: " +time.convertToTimestamp(r.getFinish())+"\n";
+					str+="Run Time: " +time.convertToTimestamp(r.getRunTime())+"\n";
+				}
+				else{
+					str+="Finish: Did not finish\nRun Time: Did not finish\n";
+				}
+			}
+		}
+		System.out.print(str);
+		return str;
 	}
 }
