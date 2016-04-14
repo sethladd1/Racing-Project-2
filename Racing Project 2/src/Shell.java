@@ -12,7 +12,7 @@ public class Shell
 {
 	private ArrayList<Run> runs;
 	private static Run curRun;
-	private boolean power;
+	private static boolean power;
 	private int IND=0, PARIND=1, GRP=2;
 	private String errorMessage;
 	private static GUI ui;
@@ -436,5 +436,8 @@ public class Shell
 		if(ui != null ){
 			curRun = ui.getCurrentRun();
 		}
+	}
+	public static void setPower(boolean p){
+		power = p;
 	}
 }

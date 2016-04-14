@@ -9,21 +9,24 @@ import java.util.ArrayList;
 public class GUI extends JFrame{
 	final static ImageIcon enabled = new ImageIcon("Icons/enabledChan.png");
 	final static ImageIcon disabled = new ImageIcon("Icons/disabledChan.png");
-	final static ImageIcon leftArrow = new ImageIcon("Icons/leftArrow.png");
-	final static ImageIcon rightArrow = new ImageIcon("Icons/rightArrow.png");
-	final static ImageIcon upArrow = new ImageIcon("Icons/upArrow.png");
-	final static ImageIcon downArrow = new ImageIcon("Icons/downArrow.png");
+//	final static ImageIcon leftArrow = new ImageIcon("Icons/leftArrow.png");
+//	final static ImageIcon rightArrow = new ImageIcon("Icons/rightArrow.png");
+//	final static ImageIcon upArrow = new ImageIcon("Icons/upArrow.png");
+//	final static ImageIcon downArrow = new ImageIcon("Icons/downArrow.png");
 	private ArrayList<JLabel> channels;
 	private ArrayList<JButton> triggers;
 	private ArrayList<JButton> numPad;
 	private JTextArea display;
 	private JTextPane printer;
-	private JButton swap, power, function, printerPower;
-	private JLabel left, right, down, up;
+	private JButton swapButton, powerButton, commandsButton, printerPowerButton;
+//	private JLabel left, right, down, up;
 	private Timer t;
 	private Run curRun;
 	private ArrayList<Run> runs;
+	private boolean commandMode;
 
+	//	XXX: as user pressed number buttons append the number to input; read input when '#' is pressed; 
+	private String input;
 	public GUI(Run r){
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		if(r!=null)
@@ -37,14 +40,15 @@ public class GUI extends JFrame{
 		display = new JTextArea();
 		display.setEditable(false);
 		numPad = new ArrayList<JButton>();
-		swap = new JButton("SWAP");
-		function = new JButton("FUNCTION");
-		power = new JButton("Power");
-		printerPower = new JButton("Print Power");
-		left = new JLabel(leftArrow);
-		right = new JLabel(rightArrow);
-		up = new JLabel(upArrow);
-		down = new JLabel(downArrow);
+		swapButton = new JButton("SWAP");
+		commandsButton = new JButton("COMMANDS");
+		powerButton = new JButton("Power");
+//		XXX: not sure if printerPowerButton is necessary
+		printerPowerButton = new JButton("Print Power");
+//		left = new JLabel(leftArrow);
+//		right = new JLabel(rightArrow);
+//		up = new JLabel(upArrow);
+//		down = new JLabel(downArrow);
 
 		JLabel l;
 		JButton b;
@@ -76,7 +80,7 @@ public class GUI extends JFrame{
 			}
 			numPad.add(b);
 		}
-		t = new Timer(100, new ActionListener(){
+		t = new Timer(10, new ActionListener(){
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -85,6 +89,7 @@ public class GUI extends JFrame{
 			}
 		});
 		t.stop();
+		t.setRepeats(true);
 		setUpUI();
 
 	}
@@ -153,36 +158,32 @@ public class GUI extends JFrame{
 
 
 		JPanel west = new JPanel();
-		BoxLayout blo = new BoxLayout(west, BoxLayout.Y_AXIS);
-		west.setAlignmentX(LEFT_ALIGNMENT);
-		west.setLayout(blo);
+		west.setLayout(new BoxLayout(west, BoxLayout.Y_AXIS));
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
-		power.setAlignmentX(LEFT_ALIGNMENT);
-		west.add(power);
+		west.add(powerButton);
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
-		west.add(function);
-		function.setAlignmentX(LEFT_ALIGNMENT);
+		west.add(commandsButton);
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
-		JPanel arrows = new JPanel();
-		arrows.setLayout(new GridLayout(3,3));
-		arrows.add(new JLabel());
-		arrows.add(up);
-		arrows.add(new JLabel());
-		arrows.add(left);
-		arrows.add(new JLabel());
-		arrows.add(right);
-		arrows.add(new JLabel());
-		arrows.add(down);
-		west.add(arrows);
+//		JPanel arrows = new JPanel();
+//		arrows.setLayout(new GridLayout(3,3));
+//		arrows.add(new JLabel());
+//		arrows.add(up);
+//		arrows.add(new JLabel());
+//		arrows.add(left);
+//		arrows.add(new JLabel());
+//		arrows.add(right);
+//		arrows.add(new JLabel());
+//		arrows.add(down);
+//		west.add(arrows);
 		add(west, BorderLayout.WEST);
 		center.add(display);
 		add(center, BorderLayout.CENTER);
@@ -219,7 +220,7 @@ public class GUI extends JFrame{
 	}
 	private void updateDisplay(){
 //		TODO update the display as described in project requirements using curRun's finishQueues, StartQueues, and lastFinishers
-//		in PARIND runs we will display two list side by side
+
 	}
 	
 	private class ClickListener extends MouseAdapter{
@@ -250,30 +251,30 @@ public class GUI extends JFrame{
 					}
 				}
 			}
-			else{
-				if(icon==upArrow){
-					centerX = l.getWidth()/2;
-					centerY = maxY;
-					x = Math.abs(e.getX()-centerX);
+//			else{
+//				if(icon==upArrow){
+//					centerX = l.getWidth()/2;
+//					centerY = maxY;
+//					x = Math.abs(e.getX()-centerX);
+//
+//					y = -1*(e.getY()-centerY);
+//
+//					if(x<icon.getIconWidth()/2&&y<icon.getIconHeight()-2*x && y>=0){
+//						System.out.println("clicked up");
+//					}
+//
+//				}
+//				else if(icon==rightArrow){
 
-					y = -1*(e.getY()-centerY);
+//
+//				}else if(icon==leftArrow){
 
-					if(x<icon.getIconWidth()/2&&y<icon.getIconHeight()-2*x && y>=0){
-						System.out.println("clicked up");
-					}
+//
+//				}else if(icon==downArrow){
 
-				}
-				else if(icon==rightArrow){
-					//					TODO calculated clickable area for right 
-
-				}else if(icon==leftArrow){
-					//					TODO calculated clickable area for left 
-
-				}else if(icon==downArrow){
-					//					TODO calculated clickable area for down 
-
-				}
-			}
+//
+//				}
+//			}
 
 		}
 	}
@@ -283,10 +284,19 @@ public class GUI extends JFrame{
 		public void actionPerformed(ActionEvent e) {
 			JButton btn = (JButton)e.getSource();
 			int chan = triggers.indexOf(btn)+1;
-			//			TODO trigger sensor chan in current run
+			curRun.trigger(chan);
 
 		}
 
+	}
+	private class ButtonActions implements ActionListener{
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+//			TODO: handle commandsButton, powerButton, swapButton (and printerPowerButton(?)  
+	
+		}
+		
 	}
 
 }
