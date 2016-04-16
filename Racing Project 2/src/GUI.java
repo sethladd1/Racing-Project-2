@@ -9,46 +9,40 @@ import java.util.ArrayList;
 public class GUI extends JFrame{
 	final static ImageIcon enabled = new ImageIcon("Icons/enabledChan.png");
 	final static ImageIcon disabled = new ImageIcon("Icons/disabledChan.png");
-//	final static ImageIcon leftArrow = new ImageIcon("Icons/leftArrow.png");
-//	final static ImageIcon rightArrow = new ImageIcon("Icons/rightArrow.png");
-//	final static ImageIcon upArrow = new ImageIcon("Icons/upArrow.png");
-//	final static ImageIcon downArrow = new ImageIcon("Icons/downArrow.png");
+	//	final static ImageIcon leftArrow = new ImageIcon("Icons/leftArrow.png");
+	//	final static ImageIcon rightArrow = new ImageIcon("Icons/rightArrow.png");
+	//	final static ImageIcon upArrow = new ImageIcon("Icons/upArrow.png");
+	//	final static ImageIcon downArrow = new ImageIcon("Icons/downArrow.png");
 	private ArrayList<JLabel> channels;
 	private ArrayList<JButton> triggers;
 	private ArrayList<JButton> numPad;
 	private JTextArea display;
-	private JTextPane printer;
-	private JButton swapButton, powerButton, commandsButton, printerPowerButton;
-//	private JLabel left, right, down, up;
+	private JTextArea printer;
+	private JButton swapButton, powerButton, commandsButton, printButton;
+	//	private JLabel left, right, down, up;
 	private Timer t;
-	private Run curRun;
-	private ArrayList<Run> runs;
 	private boolean commandMode;
-
-	//	XXX: as user pressed number buttons append the number to input; read input when '#' is pressed; 
+	private Shell shell;
+	//	XXX: as user presses number buttons append the number to input; read input when '#' is pressed; 
 	private String input;
-	public GUI(Run r){
+	public GUI(Shell s){
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		if(r!=null)
-			curRun = r;
-		else 
-			curRun = new Run(0,1);
-		runs = new ArrayList<Run>();
-		runs.add(curRun);
+		shell = s;
+
 		channels = new ArrayList<JLabel>();
 		triggers = new ArrayList<JButton>();
 		display = new JTextArea();
 		display.setEditable(false);
 		numPad = new ArrayList<JButton>();
-		swapButton = new JButton("SWAP");
-		commandsButton = new JButton("COMMANDS");
+		swapButton = new JButton("Swap");
+		commandsButton = new JButton("Commands");
 		powerButton = new JButton("Power");
-//		XXX: not sure if printerPowerButton is necessary
-		printerPowerButton = new JButton("Print Power");
-//		left = new JLabel(leftArrow);
-//		right = new JLabel(rightArrow);
-//		up = new JLabel(upArrow);
-//		down = new JLabel(downArrow);
+
+		printButton = new JButton("Print");
+		//		left = new JLabel(leftArrow);
+		//		right = new JLabel(rightArrow);
+		//		up = new JLabel(upArrow);
+		//		down = new JLabel(downArrow);
 
 		JLabel l;
 		JButton b;
@@ -170,30 +164,31 @@ public class GUI extends JFrame{
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(commandsButton);
-		west.add(new JLabel("\n "));
-		west.add(new JLabel("\n "));
-		west.add(new JLabel("\n "));
-//		JPanel arrows = new JPanel();
-//		arrows.setLayout(new GridLayout(3,3));
-//		arrows.add(new JLabel());
-//		arrows.add(up);
-//		arrows.add(new JLabel());
-//		arrows.add(left);
-//		arrows.add(new JLabel());
-//		arrows.add(right);
-//		arrows.add(new JLabel());
-//		arrows.add(down);
-//		west.add(arrows);
+//		west.add(new JLabel("\n "));
+//		west.add(new JLabel("\n "));
+//		west.add(new JLabel("\n "));
+		//		JPanel arrows = new JPanel();
+		//		arrows.setLayout(new GridLayout(3,3));
+		//		arrows.add(new JLabel());
+		//		arrows.add(up);
+		//		arrows.add(new JLabel());
+		//		arrows.add(left);
+		//		arrows.add(new JLabel());
+		//		arrows.add(right);
+		//		arrows.add(new JLabel());
+		//		arrows.add(down);
+		//		west.add(arrows);
 		add(west, BorderLayout.WEST);
 		center.add(display);
 		add(center, BorderLayout.CENTER);
 		setSize(600, 400);
-//		TODO set up east panel as shown in requirements
+		//		TODO set up east panel as shown in requirements
 	}
 	/**
-	 * called by shell if a channel toggled to ensure it shows in the GUI
+	 * called by shell if a channel is toggled by cmdline to ensure it shows in the GUI
 	 */
 	public void syncChanIcons(){
+		Run curRun = shell.getCurrentRun();
 		for(int i=1;i<9; i++){
 			if(curRun.getChannel(i)){
 				channels.get(i-1).setIcon(enabled);
@@ -203,26 +198,22 @@ public class GUI extends JFrame{
 			}
 		}
 	}
-	/**
-	 * called by shell when new run command is entered to ensure GUI and shell are working with the same run. 
-	 * @param r - the new current run
-	 * @return - true if current run has ended, else false
-	 */
-	public boolean setRun(Run r){
-		if(curRun.running()){
-			return false;
-		}
-		curRun=r!=null?r:new Run(0,curRun.getRunNum()+1);
-		return true;
-	}
-	public Run getCurrentRun(){
-		return curRun;
-	}
-	private void updateDisplay(){
-//		TODO update the display as described in project requirements using curRun's finishQueues, StartQueues, and lastFinishers
 
+	private void updateDisplay(){
+		//		TODO update the display as described in project requirements using curRun's finishQueues, StartQueues, and lastFinishers
+		Run curRun = shell.getCurrentRun();
+		switch(curRun.getType()){
+		case 0:
+			break;
+		case 1:
+			break;
+		case 2:
+			break;
+		}
 	}
-	
+	private void print(){
+		
+	}
 	private class ClickListener extends MouseAdapter{
 		public void mousePressed(MouseEvent e){
 			JLabel l = (JLabel)e.getSource();
@@ -236,45 +227,48 @@ public class GUI extends JFrame{
 			int centerY; 
 			int x, y;
 			if(icon==disabled || icon == enabled){
-				int rad = icon.getIconWidth()/2;
-				centerX = l.getWidth()/2;
-				centerY = l.getHeight()/2;
-				y = Math.abs(e.getY()-centerY);
-				x = Math.abs(e.getX()-centerX);
+				int chan =  channels.indexOf(l)+1;
+				if(shell.readCommand("TOG "+chan)){
+					int rad = icon.getIconWidth()/2;
+					centerX = l.getWidth()/2;
+					centerY = l.getHeight()/2;
+					y = Math.abs(e.getY()-centerY);
+					x = Math.abs(e.getX()-centerX);
 
-				if(y*y+x*x<=rad*rad){
-					if(icon == disabled){
-						l.setIcon(enabled);
-					}
-					else{
-						l.setIcon(disabled);
+					if(y*y+x*x<=rad*rad){
+						if(icon == disabled){
+							l.setIcon(enabled);
+						}
+						else{
+							l.setIcon(disabled);
+						}
 					}
 				}
 			}
-//			else{
-//				if(icon==upArrow){
-//					centerX = l.getWidth()/2;
-//					centerY = maxY;
-//					x = Math.abs(e.getX()-centerX);
-//
-//					y = -1*(e.getY()-centerY);
-//
-//					if(x<icon.getIconWidth()/2&&y<icon.getIconHeight()-2*x && y>=0){
-//						System.out.println("clicked up");
-//					}
-//
-//				}
-//				else if(icon==rightArrow){
+			//			else{
+			//				if(icon==upArrow){
+			//					centerX = l.getWidth()/2;
+			//					centerY = maxY;
+			//					x = Math.abs(e.getX()-centerX);
+			//
+			//					y = -1*(e.getY()-centerY);
+			//
+			//					if(x<icon.getIconWidth()/2&&y<icon.getIconHeight()-2*x && y>=0){
+			//						System.out.println("clicked up");
+			//					}
+			//
+			//				}
+			//				else if(icon==rightArrow){
 
-//
-//				}else if(icon==leftArrow){
+			//
+			//				}else if(icon==leftArrow){
 
-//
-//				}else if(icon==downArrow){
+			//
+			//				}else if(icon==downArrow){
 
-//
-//				}
-//			}
+			//
+			//				}
+			//			}
 
 		}
 	}
@@ -284,19 +278,32 @@ public class GUI extends JFrame{
 		public void actionPerformed(ActionEvent e) {
 			JButton btn = (JButton)e.getSource();
 			int chan = triggers.indexOf(btn)+1;
-			curRun.trigger(chan);
-
+			shell.readCommand("TRIG" + chan);
+			
 		}
 
 	}
 	private class ButtonActions implements ActionListener{
-
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
-//			TODO: handle commandsButton, powerButton, swapButton (and printerPowerButton(?)  
-	
-		}
 		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			//			TODO: handle commandsButton, powerButton, swapButton and printButton 
+			JButton btn = (JButton) e.getSource();
+			switch(btn.getText()){
+			case "Print":
+				if(shell.getPower()){
+					print();
+				}
+				break;
+			case "Power":
+				break;
+			case "Commands":
+				break;
+			case "Swap":
+				break;
+			}
+		}
+
 	}
 
 }

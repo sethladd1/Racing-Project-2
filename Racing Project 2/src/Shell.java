@@ -11,8 +11,8 @@ import java.util.regex.*;
 public class Shell
 {
 	private ArrayList<Run> runs;
-	private static Run curRun;
-	private static boolean power;
+	private Run curRun;
+	private boolean power;
 	private int IND=0, PARIND=1, GRP=2;
 	private String errorMessage;
 	private static GUI ui;
@@ -21,6 +21,7 @@ public class Shell
 		curRun = new Run(0,1);
 		power = true;
 		runs = new ArrayList<Run>();
+		ui = new GUI(this);
 		readCommandsFromFile(filePath);
 	}
 	public Shell(){
@@ -427,17 +428,8 @@ public class Shell
 	public Run getCurrentRun(){
 		return curRun;
 	}
-	/**
-	 * This method sets the shell's curRun to the GUI's curRun, 
-	 * so command triggered by shell and GUI have the same effect.
-	 * 
-	 */
-	public static void synchRuns(){
-		if(ui != null ){
-			curRun = ui.getCurrentRun();
-		}
+	public ArrayList<Run> getRuns(){
+		return runs;
 	}
-	public static void setPower(boolean p){
-		power = p;
-	}
+
 }
