@@ -1,5 +1,6 @@
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonAreaLayout;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,17 +19,19 @@ public class GUI extends JFrame{
 	private ArrayList<JButton> numPad;
 	private JTextArea display;
 	private JTextArea printer;
-	private JButton swapButton, powerButton, commandsButton, printButton;
+	private JButton swapButton, powerButton, commandsButton, printPowerButton;
 	//	private JLabel left, right, down, up;
 	private Timer t;
-	private boolean commandMode;
+	private boolean commandMode, printPower;
 	private Shell shell;
 	//	XXX: as user presses number buttons append the number to input; read input when '#' is pressed; 
 	private String input;
+	private int cmd;
 	public GUI(Shell s){
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		shell = s;
-
+		input ="";
+		cmd=0;
 		channels = new ArrayList<JLabel>();
 		triggers = new ArrayList<JButton>();
 		display = new JTextArea();
@@ -38,7 +41,7 @@ public class GUI extends JFrame{
 		commandsButton = new JButton("Commands");
 		powerButton = new JButton("Power");
 
-		printButton = new JButton("Print");
+		printPowerButton = new JButton("Printer Power");
 		//		left = new JLabel(leftArrow);
 		//		right = new JLabel(rightArrow);
 		//		up = new JLabel(upArrow);
@@ -164,9 +167,9 @@ public class GUI extends JFrame{
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(commandsButton);
-//		west.add(new JLabel("\n "));
-//		west.add(new JLabel("\n "));
-//		west.add(new JLabel("\n "));
+		//		west.add(new JLabel("\n "));
+		//		west.add(new JLabel("\n "));
+		//		west.add(new JLabel("\n "));
 		//		JPanel arrows = new JPanel();
 		//		arrows.setLayout(new GridLayout(3,3));
 		//		arrows.add(new JLabel());
@@ -183,6 +186,17 @@ public class GUI extends JFrame{
 		add(center, BorderLayout.CENTER);
 		setSize(600, 400);
 		//		TODO set up east panel as shown in requirements
+		JPanel east = new JPanel();
+		east.setLayout(new BoxLayout(east, BoxLayout.Y_AXIS));
+		east.add(printPowerButton);
+		east.add(printer);
+		JPanel numPan = new JPanel();
+		numPan.setLayout(new GridLayout(4, 4));
+		for(JButton btn : numPad){
+			numPan.add(btn);
+			btn.addActionListener(new ButtonActions());
+		}
+
 	}
 	/**
 	 * called by shell if a channel is toggled by cmdline to ensure it shows in the GUI
@@ -204,6 +218,10 @@ public class GUI extends JFrame{
 		Run curRun = shell.getCurrentRun();
 		switch(curRun.getType()){
 		case 0:
+			ArrayList<Racer> rcrs = curRun.getRacers();
+			for(Racer r : rcrs){
+
+			}
 			break;
 		case 1:
 			break;
@@ -212,6 +230,25 @@ public class GUI extends JFrame{
 		}
 	}
 	private void print(){
+		
+	}
+	private void commands(int cmd){
+		String str;
+		switch(cmd){
+		case 0:
+			str = "1. Event Type\n"+"2. Time\n"+"3. Add Racer\n" + "4. Clear Racer\n" + "5. End Run" + "6. New Run" + "7. Reset\n" + "8. Print\n";
+			if(shell.getCurrentRun().getType()==0){
+				str += "8. Did Not Finish\n";
+			}
+			str += "\n";
+			display.setText(str);
+			break;
+		case 1:
+			str = "1. IND\n"+"2. PARIND\n"+"3.GRP\n\n";
+		}
+		
+	}
+	private void readCommand(){
 		
 	}
 	private class ClickListener extends MouseAdapter{
@@ -279,28 +316,101 @@ public class GUI extends JFrame{
 			JButton btn = (JButton)e.getSource();
 			int chan = triggers.indexOf(btn)+1;
 			shell.readCommand("TRIG" + chan);
-			
+
 		}
 
 	}
 	private class ButtonActions implements ActionListener{
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			//			TODO: handle commandsButton, powerButton, swapButton and printButton 
+			//			TODO: handle commandsButton, powerButton, swapButton and printPowerButton 
 			JButton btn = (JButton) e.getSource();
-			switch(btn.getText()){
-			case "Print":
-				if(shell.getPower()){
-					print();
+			if(btn== powerButton){
+				shell.readCommand("POWER");
+				return;
+			}
+			if(shell.getPower()){
+				switch(btn.getText()){
+				case "Printer Power":
+					printPower = !printPower;
+					break;
+				case "Commands":
+					t.stop();
+					commandMode = true;
+					break;
+				case "Swap":
+					shell.readCommand("SWAP");
+					if(!shell.getErrorMessage().isEmpty()){
+						
+					}
+					break;
+				case "1":
+					if(commandMode){
+						input+="1";
+						display.setText(display.getText()+"1");
+					}
+					break;
+				case "2":
+					if(commandMode){
+						input+="1";
+						display.setText(display.getText()+"1");
+					}
+					break;
+				case "3":
+					if(commandMode){
+						input+="1";
+						display.setText(display.getText()+"3");
+					}
+					break;
+				case "4":
+					if(commandMode){
+						input+="4";
+						display.setText(display.getText()+"4");
+					}
+					break;
+				case "5":
+					if(commandMode){
+						input+="5";
+						display.setText(display.getText()+"5");
+					}
+					break;
+				case "6":
+					if(commandMode){
+						input+="6";
+						display.setText(display.getText()+"6");
+					}
+					break;
+				case "7":
+					if(commandMode){
+						input+="7";
+						display.setText(display.getText()+"7");
+					}
+					break;
+				case "8":
+					if(commandMode){
+						input+="8";
+						display.setText(display.getText()+"8");
+					}
+					break;
+				case "9":
+					if(commandMode){
+						input+="9";
+						display.setText(display.getText()+"9");
+					}
+					break;
+				case "0":
+					if(commandMode){
+						input+="0";
+						display.setText(display.getText()+"0");
+					}
+					break;
+				case "*":
+					
+					break;
+				case "#":
+					break;
 				}
-				break;
-			case "Power":
-				break;
-			case "Commands":
-				break;
-			case "Swap":
-				break;
 			}
 		}
 
