@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Scanner;
 public class GUI extends JFrame{
 	final static ImageIcon enabled = new ImageIcon("Icons/enabledChan.png");
 	final static ImageIcon disabled = new ImageIcon("Icons/disabledChan.png");
@@ -27,6 +28,7 @@ public class GUI extends JFrame{
 	//	XXX: as user presses number buttons append the number to input; read input when '#' is pressed; 
 	private String input;
 	private int cmd;
+	private ArrayList<String> printerText;
 	public GUI(Shell s){
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		shell = s;
@@ -212,45 +214,234 @@ public class GUI extends JFrame{
 			}
 		}
 	}
+	public void reset(){
 
+	}
 	private void updateDisplay(){
-		//		TODO update the display as described in project requirements using curRun's finishQueues, StartQueues, and lastFinishers
 		Run curRun = shell.getCurrentRun();
+		display.append("Time: "+curRun.getElapsedTime() +"\n");
+		
+		ArrayList<Racer> rcrs;
 		switch(curRun.getType()){
 		case 0:
-			ArrayList<Racer> rcrs = curRun.getRacers();
+			rcrs = curRun.getFinishQueue1();
 			for(Racer r : rcrs){
-
+				display.append(r.getNumber()+": "+curRun.getRunningTime(r)+" R\n");
 			}
+			rcrs = curRun.getStartQueue1();
+			for(int i=0 ; i<3 && i<rcrs.size();++i){
+				display.append(rcrs.get(i).getNumber()+": "+" Q\n");
+			}
+			Racer r = curRun.getLastFinish1();
+			if(r!=null)
+				display.append(r.getNumber()+": "+curRun.getRunningTime(r)+" F");
 			break;
 		case 1:
+			rcrs = curRun.getFinishQueue1();
+			ArrayList<Racer> rc2 = curRun.getFinishQueue2();
+			for(int i=0;i<Math.max(rc2.size(), rcrs.size());++i){
+				if(i<rcrs.size())
+					display.append(rcrs.get(i).getNumber()+": "+curRun.getRunningTime(rcrs.get(i))+" R   ");
+				if(i<rc2.size())
+					display.append(rc2.get(i).getNumber()+": "+curRun.getRunningTime(rc2.get(i))+" R\n");
+				else
+					display.append("\n");
+			}
+			rcrs = curRun.getStartQueue1();
+			rc2 = curRun.getStartQueue2();
+			if(!rcrs.isEmpty())	
+				display.append(rcrs.get(0).getNumber()+": "+curRun.getRunningTime(rcrs.get(0))+" Q   ");
+			if(!rc2.isEmpty())
+				display.append(rc2.get(0).getNumber()+": "+curRun.getRunningTime(rc2.get(0))+" Q\n");
+			else
+				display.append("\n");
+			Racer r1 = curRun.getLastFinish1();
+			Racer r2 = curRun.getLastFinish2();
+			
+			if(r1!=null)
+				display.append(r1.getNumber()+": "+curRun.getRunningTime(r1)+" F   ");
+			if(r1!=null)
+				display.append(r2.getNumber()+": "+curRun.getRunningTime(r2)+" F");
+			
 			break;
 		case 2:
+			ArrayList<Long> ranks = curRun.getGroupRanks();
+			if(!ranks.isEmpty()){
+				String rank = String.valueOf(ranks.size());
+				while(rank.length()<5)
+					rank = "0"+rank;
+				display.append(rank + " " +Time.convertToTimestamp(ranks.get(ranks.size()-1))+"\n");
+				
+			}
 			break;
 		}
 	}
-	private void print(){
-		
+	private void print(String str){
+//		TODO figure out how to word wrap and keep lineCount correct
+		if(!printPower) return;
+		Scanner sc = new Scanner(str);
+		while(sc.hasNextLine()){
+			try{
+				if((printer.getLineCount()+1)*printer.getFontMetrics(printer.getFont()).getHeight()>=printer.getHeight()){
+					System.out.println(45);
+					int offset = printer.getLineStartOffset(1);
+					String txt = printer.getText();
+
+					printer.setText(txt.substring(offset, txt.length()));
+				}
+			}catch(Exception es){
+				System.out.println(es.toString());
+			}
+			printer.append(sc.nextLine()+"\n");
+		}
 	}
-	private void commands(int cmd){
-		String str;
-		switch(cmd){
+	private void commands(int command){
+		String str="";
+		switch(command){
 		case 0:
 			str = "1. Event Type\n"+"2. Time\n"+"3. Add Racer\n" + "4. Clear Racer\n" + "5. End Run" + "6. New Run" + "7. Reset\n" + "8. Print\n";
 			if(shell.getCurrentRun().getType()==0){
-				str += "8. Did Not Finish\n";
+				str += "9. Did Not Finish\n";
 			}
 			str += "\n";
 			display.setText(str);
 			break;
 		case 1:
 			str = "1. IND\n"+"2. PARIND\n"+"3.GRP\n\n";
+			cmd=1;
+			input="";
+			break;
+		case 2:
+			str="Enter <hr>*<min>*<sec>: ";
+			input="";
+			cmd=2;
+			break;
+		case 3:
+			str="Enter Number: ";
+			input="";
+			cmd=3;
+			break;
+		case 4:
+			str="Enter Number: ";
+			input="";
+			cmd=4;
+			break;
+		case 5:
+			if(!shell.readCommand("ENDRUN")){
+				print(shell.getErrorMessage());
+			}
+			input="";
+			cmd=0;
+			commandMode=false;
+			t.start();
+			break;
+		case 6:
+			if(!shell.readCommand("NEWRUN")){
+				print(shell.getErrorMessage());
+			}
+			input="";
+			cmd=0;
+			commandMode=false;
+			t.start();
+			break;
+		case 7:
+			reset();
+			input="";
+			cmd=0;
+			commandMode=false;
+			t.start();
+			break;
+		case 8:
+			print(shell.getCurrentRun().print());
+			input="";
+			cmd=0;
+			commandMode=false;
+			t.start();
+			break;
+		case 9:
+			shell.readCommand("DNF");
+			input="";
+			cmd=0;
+			commandMode=false;
+			t.start();
+			break;
+		default:
+			str="Invalid Input";
+			Timer t2 = new Timer(1000, new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					input = "";
+					commands(cmd);
+				}
+			});
+			t2.setRepeats(false);
+			t2.start();
 		}
-		
+		display.setText(str);
+
 	}
 	private void readCommand(){
-		
+		//		TODO
+		boolean badInput = false;
+		switch(cmd){
+		case 0:
+			commands(Integer.parseInt(input));
+			break;
+		case 1:
+			if(input.equals("1"))
+				shell.readCommand("EVENT IND");
+			else if(input.equals("2"))
+				shell.readCommand("EVENT PARIND");
+			else if(input.equals("3"))
+				shell.readCommand("EVENT GRP");
+			else
+				badInput=true;
+			break;
+		case 2:
+			String arr[] = input.split("\\*");
+			if(arr.length<3) {
+				badInput=true;
+			}
+			else{
+				if(!shell.readCommand("TIME "+arr[0]+":"+arr[1]+":"+arr[2]))
+					print(shell.getErrorMessage());
+
+			}
+			
+			break;
+		case 3:
+			if(!shell.readCommand("NUM " + input))
+				print(shell.getErrorMessage());
+			
+			break;
+		case 4:
+			if(!shell.readCommand("CLR " + input))
+				print(shell.getErrorMessage());
+			break;
+		}
+		if(badInput){
+			display.setText("Invalid Input");
+			Timer t2 = new Timer(1000, new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					input = "";
+					commands(cmd);
+				}
+			});
+			t2.setRepeats(false);
+			t2.start();
+		}
+		else if(cmd!=0){
+			input = "";
+			commandMode=false;
+			t.start();
+		}
 	}
+
 	private class ClickListener extends MouseAdapter{
 		public void mousePressed(MouseEvent e){
 			JLabel l = (JLabel)e.getSource();
@@ -281,34 +472,17 @@ public class GUI extends JFrame{
 						}
 					}
 				}
+				else{
+					if(printPower){
+						printer.append(shell.getErrorMessage());
+					}
+				}
 			}
-			//			else{
-			//				if(icon==upArrow){
-			//					centerX = l.getWidth()/2;
-			//					centerY = maxY;
-			//					x = Math.abs(e.getX()-centerX);
-			//
-			//					y = -1*(e.getY()-centerY);
-			//
-			//					if(x<icon.getIconWidth()/2&&y<icon.getIconHeight()-2*x && y>=0){
-			//						System.out.println("clicked up");
-			//					}
-			//
-			//				}
-			//				else if(icon==rightArrow){
 
-			//
-			//				}else if(icon==leftArrow){
-
-			//
-			//				}else if(icon==downArrow){
-
-			//
-			//				}
-			//			}
 
 		}
 	}
+
 	private class TriggerListener implements ActionListener{
 
 		@Override
@@ -324,7 +498,6 @@ public class GUI extends JFrame{
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			//			TODO: handle commandsButton, powerButton, swapButton and printPowerButton 
 			JButton btn = (JButton) e.getSource();
 			if(btn== powerButton){
 				shell.readCommand("POWER");
@@ -336,79 +509,92 @@ public class GUI extends JFrame{
 					printPower = !printPower;
 					break;
 				case "Commands":
-					t.stop();
-					commandMode = true;
+					if(!commandMode){
+						t.stop();
+						commandMode = true;
+						commands(0);
+					}
+					else{
+						t.start();
+						commandMode = false;
+					}
 					break;
 				case "Swap":
 					shell.readCommand("SWAP");
 					if(!shell.getErrorMessage().isEmpty()){
-						
+						print(shell.getErrorMessage());
 					}
 					break;
 				case "1":
 					if(commandMode){
 						input+="1";
-						display.setText(display.getText()+"1");
+						display.append("1");
 					}
 					break;
 				case "2":
 					if(commandMode){
 						input+="1";
-						display.setText(display.getText()+"1");
+						display.append("1");
 					}
 					break;
 				case "3":
 					if(commandMode){
 						input+="1";
-						display.setText(display.getText()+"3");
+						display.append("3");
 					}
 					break;
 				case "4":
 					if(commandMode){
 						input+="4";
-						display.setText(display.getText()+"4");
+						display.append("4");
 					}
 					break;
 				case "5":
 					if(commandMode){
 						input+="5";
-						display.setText(display.getText()+"5");
+						display.append("5");
 					}
 					break;
 				case "6":
 					if(commandMode){
 						input+="6";
-						display.setText(display.getText()+"6");
+						display.append("6");
 					}
 					break;
 				case "7":
 					if(commandMode){
 						input+="7";
-						display.setText(display.getText()+"7");
+						display.append("7");
 					}
 					break;
 				case "8":
 					if(commandMode){
 						input+="8";
-						display.setText(display.getText()+"8");
+						display.append("8");
 					}
 					break;
 				case "9":
 					if(commandMode){
 						input+="9";
-						display.setText(display.getText()+"9");
+						display.append("9");
 					}
 					break;
 				case "0":
 					if(commandMode){
 						input+="0";
-						display.setText(display.getText()+"0");
+						display.append("0");
 					}
 					break;
 				case "*":
-					
+					if(commandMode && cmd==2){
+						input+="*";
+						display.append("*");
+					}
 					break;
 				case "#":
+					if(commandMode){
+						readCommand();
+					}
 					break;
 				}
 			}

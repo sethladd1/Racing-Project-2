@@ -31,7 +31,7 @@ public class Time
 		double e = (double)(System.currentTimeMillis()-start);
 		return convertToTimestamp(e);
 	}
-	public String convertToTimestamp(double elapsedInMilliseconds){
+	public static String convertToTimestamp(double elapsedInMilliseconds){
 		// get minutes elapsed
 		double elapsedsec = elapsedInMilliseconds/1000;
 		int h = (int)(elapsedsec/(60*60));

@@ -21,6 +21,7 @@ public class Run {
 	private int runNum;
 	private boolean started;
 	private Racer lastFinish1, lastFinish2;
+
 	public Run(int type, int runNum){
 		this.type=type;
 		this.runNum=runNum;
@@ -71,6 +72,17 @@ public class Run {
 	}
 	public String getElapsedTime(){
 		return time.getCurrentTimeStamp();
+	}
+	public String getRunningTime(Racer r){
+		if(r.finished()){
+			return time.convertToTimestamp(r.getRunTime());
+		}
+		else if(r.started()){
+			return time.convertToTimestamp(time.elapsed()-r.getStart());
+		}
+		else{
+			return time.convertToTimestamp(0);
+		}
 	}
 	public void toggle (int channel){
 		if(channel<=channels.length && channel>0)
