@@ -358,7 +358,6 @@ public class GUI extends JFrame{
 		}
 	}
 	public void print(String str){
-//		TODO figure out how to word wrap and keep lineCount correct
 		if(!printPower) return;
 		Scanner sc = new Scanner(str);
 		FontMetrics fm = printer.getFontMetrics(printer.getFont());
@@ -397,9 +396,9 @@ public class GUI extends JFrame{
 		String str="";
 		switch(command){
 		case 0:
-			str = "1. Event Type\n"+"2. Time\n"+"3. Add Racer\n" + "4. Clear Racer\n" + "5. End Run\n" + "6. New Run\n" + "7. Reset\n" + "8. Print\n";
+			str = "1. Event Type\n"+"2. Time\n"+"3. Add Racer\n" + "4. Clear Racer\n" + "5. End Run\n" + "6. New Run\n" + "7. Reset\n" + "8. Print\n9.Export\n";
 			if(shell.getCurrentRun().getType()==0){
-				str += "9. Did Not Finish\n";
+				str += "10. Did Not Finish\n";
 			}
 			str += "\n";
 			display.setText(str);
@@ -451,13 +450,17 @@ public class GUI extends JFrame{
 			t.start();
 			break;
 		case 8:
-			print(shell.getCurrentRun().print());
+			str ="Enter Run Number: ";
+			cmd=8;
 			input="";
-			cmd=0;
-			commandMode=false;
-			t.start();
 			break;
 		case 9:
+//			TODO exprt
+			str ="Enter Run Number: ";
+			cmd=9;
+			input="";
+			break;
+		case 10:
 			shell.readCommand("DNF");
 			input="";
 			cmd=0;
@@ -515,6 +518,14 @@ public class GUI extends JFrame{
 			break;
 		case 4:
 			if(!shell.readCommand("CLR " + input))
+				print(shell.getErrorMessage());
+			break;
+		case 8:
+			if(!shell.readCommand("PRINT " + input))
+				print(shell.getErrorMessage());
+			break;
+		case 9: 
+			if(!shell.readCommand("EXPORT " + input))
 				print(shell.getErrorMessage());
 			break;
 		}

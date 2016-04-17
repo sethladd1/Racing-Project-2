@@ -371,26 +371,44 @@ public class Run {
 	public String export(File file){
 		//		TODO update this so it exports times in grpRanks if type is GRP, associated with rank or racer nums if they exist
 		Gson g = new Gson();
-		JsonObject jso = new JsonObject();
+		JsonObject jso;
 		ArrayList<JsonObject> jsObjects =  new ArrayList<JsonObject>();
 		String errorMessage = "";
-		for(Racer r : racers){
-			jso = new JsonObject();
-			jso.addProperty("Number", r.getNumber());
-			if(r.started())
-				jso.addProperty("Start", time.convertToTimestamp(r.getStart()));
-			else
-				jso.addProperty("Start", "Did not start");
-			if(r.finished()){
-				jso.addProperty("Finish", time.convertToTimestamp(r.getFinish()));
-				jso.addProperty("Run Time", time.convertToTimestamp(r.getRunTime()));
+		if(type==GRP){
+			for(int i=0;i<grpRanks.size();++i){
+				jso = new JsonObject();
+				if(i<racers.size()){
+					jso.addProperty(String.valueOf(racers.get(i).getNumber()), Time.convertToTimestamp(grpRanks.get(i)));
+				}
+				else{
+					String rank = String.valueOf(i);
+					while(rank.length()<5){
+						rank="0"+rank;
+					}
+					jso.addProperty(rank, Time.convertToTimestamp(grpRanks.get(i)));
+				}
+				jsObjects.add(jso);
 			}
-			else{
-				jso.addProperty("Finish", "Did not Finish");
-				jso.addProperty("Run Time", "Did not Finish");
-			}
-			jsObjects.add(jso);
 		}
+		else{
+			for(Racer r : racers){
+				String val="";
+				
+				if(r.started()&&r.finished())
+					val=getRunningTime(r);
+				else{ 
+					if(r.started() && !r.DNF()){
+						val=getRunningTime(r) +" R";
+					}
+					if(r.DNF()){
+						val="DNF";
+					}
+				}
+				jso = new JsonObject();
+				jso.addProperty(String.valueOf(r.getNumber()), val);
+				jsObjects.add(jso);
+			}
+		
 		String output = g.toJson(jsObjects);
 		try{
 			FileWriter writer = new FileWriter(file);
@@ -398,6 +416,7 @@ public class Run {
 			writer.close();
 		} catch(IOException e){
 			errorMessage = "There was an error writing to file:\n"+e.getMessage();	
+		}
 		}
 		return errorMessage;
 
