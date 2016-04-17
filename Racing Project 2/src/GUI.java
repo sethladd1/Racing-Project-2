@@ -18,6 +18,7 @@ public class GUI extends JFrame{
 	private ArrayList<JLabel> channels;
 	private ArrayList<JButton> triggers;
 	private ArrayList<JButton> numPad;
+	private ArrayList<JComboBox<String>> sensors;
 	private JTextArea display;
 	private JTextArea printer;
 	private JButton swapButton, powerButton, commandsButton, printPowerButton;
@@ -30,20 +31,32 @@ public class GUI extends JFrame{
 	private int cmd;
 	private ArrayList<String> printerText;
 	public GUI(Shell s){
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		shell = s;
 		input ="";
 		cmd=0;
 		channels = new ArrayList<JLabel>();
 		triggers = new ArrayList<JButton>();
+		sensors = new ArrayList<JComboBox<String>>();
 		display = new JTextArea();
 		display.setEditable(false);
+		display.setBackground(Color.BLACK);
+		display.setForeground(Color.WHITE);
+		
+		display.setFont(new Font(display.getFont().getFontName(), Font.BOLD, 11));
 		numPad = new ArrayList<JButton>();
 		swapButton = new JButton("Swap");
+		swapButton.addActionListener(new ButtonActions());
 		commandsButton = new JButton("Commands");
+		commandsButton.addActionListener(new ButtonActions());
 		powerButton = new JButton("Power");
-
+		powerButton.addActionListener(new ButtonActions());
 		printPowerButton = new JButton("Printer Power");
+		printPowerButton.addActionListener(new ButtonActions());
+		printer = new JTextArea();
+		printer.setEditable(false);
+		BorderLayout bl = new BorderLayout(10, 10);
+		setLayout(bl);
 		//		left = new JLabel(leftArrow);
 		//		right = new JLabel(rightArrow);
 		//		up = new JLabel(upArrow);
@@ -63,7 +76,7 @@ public class GUI extends JFrame{
 		}
 
 		for(int i = 0; i<12;++i){
-			//			TODO set font size
+
 			if(i==9){
 				b = new JButton("*");
 
@@ -77,13 +90,24 @@ public class GUI extends JFrame{
 			else{
 				b = new JButton(String.valueOf(i+1));
 			}
+			b.setFont(new Font(b.getFont().getFontName(), b.getFont().getStyle(), 18));
+			b.addActionListener(new ButtonActions());
 			numPad.add(b);
 		}
-		t = new Timer(10, new ActionListener(){
+		JComboBox<String> cb;
+		for(int i=0;i<8;++i){
+			cb = new JComboBox<String>();
+			cb.addItem("");
+			cb.addItem("EYE");
+			cb.addItem("GATE");
+			cb.addItem("PAD");
+			cb.addActionListener(new SensorListener());
+			sensors.add(cb);
+		}
+		t = new Timer(20, new ActionListener(){
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
 				updateDisplay();
 			}
 		});
@@ -94,6 +118,7 @@ public class GUI extends JFrame{
 	}
 
 	private void setUpUI(){
+//		Center Panel
 		JPanel center = new JPanel();
 		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 		JPanel trigChanGrid = new JPanel();
@@ -105,18 +130,10 @@ public class GUI extends JFrame{
 		JPanel textLabels = new JPanel();
 		textLabels.setLayout(new BoxLayout(textLabels, BoxLayout.Y_AXIS));
 		JLabel title = new JLabel("ChronoTimer 1009");
-		channels = new ArrayList<JLabel>();
-		triggers = new ArrayList<JButton>();
+
 		JLabel l;
 		JButton b;
-		for(int i=0; i<8; ++i){
-			l = new JLabel(disabled);
-			l.addMouseListener(new ClickListener());
-			b = new JButton();
-			b.setBackground(Color.BLUE);
-			channels.add(l);
-			triggers.add(b);
-		}
+
 		trigChanGrid.add(new JLabel());
 		for(int i=1; i<8; i+=2){
 			l = new JLabel(Integer.toString(i));
@@ -124,11 +141,15 @@ public class GUI extends JFrame{
 			l.setVerticalAlignment(JLabel.BOTTOM);
 			trigChanGrid.add(l);
 		}
-		trigChanGrid.add(new JLabel("Start"));
+		l = new JLabel("Start");
+		l.setHorizontalAlignment(JLabel.RIGHT);
+		trigChanGrid.add(l);
 		for(int i=0; i<7; i+=2){
-			trigChanGrid.add(triggers.get(i));
+			trigChanGrid.add(this.triggers.get(i));
 		}
-		trigChanGrid.add(new JLabel("Arm/Disarm"));
+		l = new JLabel("Arm/Disarm");
+		l.setHorizontalAlignment(JLabel.RIGHT);
+		trigChanGrid.add(l);
 		for(int i=0; i<7; i+=2){
 			trigChanGrid.add(channels.get(i));
 		}
@@ -139,22 +160,28 @@ public class GUI extends JFrame{
 			l.setVerticalAlignment(JLabel.BOTTOM);
 			trigChanGrid.add(l);
 		}
-		trigChanGrid.add(new JLabel("Finish"));
+		l = new JLabel("Finish");
+		l.setHorizontalAlignment(JLabel.RIGHT);
+		trigChanGrid.add(l);
 		for(int i=1; i<8; i+=2){
 			trigChanGrid.add(triggers.get(i));
 		}
-		trigChanGrid.add(new JLabel("Arm/Disarm"));
+		l = new JLabel("Arm/Disarm");
+		l.setHorizontalAlignment(JLabel.RIGHT);
+		trigChanGrid.add(l);
 
 		for(int i=1; i<8; i+=2){
 			trigChanGrid.add(channels.get(i));
 		}
 
-		center.add(title);
+		add(title, BorderLayout.NORTH);
 		Font f = title.getFont();
 		title.setHorizontalAlignment(JLabel.CENTER);
 		title.setFont(new Font(f.getName(), f.getStyle(), 16));
 		center.add(trigChanGrid);
-
+		center.add(new JLabel(" "));
+		center.add(display);
+		add(center, BorderLayout.CENTER);
 
 		JPanel west = new JPanel();
 		west.setLayout(new BoxLayout(west, BoxLayout.Y_AXIS));
@@ -169,35 +196,84 @@ public class GUI extends JFrame{
 		west.add(new JLabel("\n "));
 		west.add(new JLabel("\n "));
 		west.add(commandsButton);
-		//		west.add(new JLabel("\n "));
-		//		west.add(new JLabel("\n "));
-		//		west.add(new JLabel("\n "));
-		//		JPanel arrows = new JPanel();
-		//		arrows.setLayout(new GridLayout(3,3));
-		//		arrows.add(new JLabel());
-		//		arrows.add(up);
-		//		arrows.add(new JLabel());
-		//		arrows.add(left);
-		//		arrows.add(new JLabel());
-		//		arrows.add(right);
-		//		arrows.add(new JLabel());
-		//		arrows.add(down);
-		//		west.add(arrows);
 		add(west, BorderLayout.WEST);
-		center.add(display);
-		add(center, BorderLayout.CENTER);
-		setSize(600, 400);
-		//		TODO set up east panel as shown in requirements
+
+
+
 		JPanel east = new JPanel();
 		east.setLayout(new BoxLayout(east, BoxLayout.Y_AXIS));
+		east.add(new JLabel(" "));
+		east.add(new JLabel(" "));
+		east.add(new JLabel(" "));
+
 		east.add(printPowerButton);
+		east.add(new JLabel(" "));
 		east.add(printer);
+		east.add(new JLabel(" "));
+		east.add(new JLabel(" "));
+		east.add(new JLabel(" "));
 		JPanel numPan = new JPanel();
 		numPan.setLayout(new GridLayout(4, 4));
 		for(JButton btn : numPad){
 			numPan.add(btn);
-			btn.addActionListener(new ButtonActions());
+
 		}
+		east.add(numPan);
+		east.add(new JLabel(" "));
+
+
+
+		add(east, BorderLayout.EAST);
+		numPan.setPreferredSize(new Dimension(numPan.getPreferredSize().width, numPan.getPreferredSize().height+50));
+		east.setPreferredSize(new Dimension(east.getPreferredSize().width+50, east.getPreferredSize().height));
+
+		//		South Panel
+		JPanel south = new JPanel();
+
+		south.setLayout(new BoxLayout(south, BoxLayout.X_AXIS));
+		JPanel sensorGrid = new JPanel(new GridLayout(4, 5));
+
+		for(int i=0;i<4;++i){
+			for(int j=0;j<5;++j){
+				if(j==0&&i%2==0){
+					l = new JLabel("Channel");
+					l.setHorizontalAlignment(JLabel.CENTER);
+					//					l.setVerticalAlignment(JLabel.BOTTOM);
+					sensorGrid.add(l);
+				}
+				else{ 
+					if(i%2==0){
+						l = new JLabel(String.valueOf(j+2*i));
+						l.setHorizontalAlignment(JLabel.CENTER);
+						//						l.setVerticalAlignment(JLabel.BOTTOM);
+						sensorGrid.add(l);
+					}
+					else
+						if(j==0){
+							l = new JLabel("Sensor");
+							l.setHorizontalAlignment(JLabel.CENTER);
+							//							l.setVerticalAlignment(JLabel.BOTTOM);
+							sensorGrid.add(l);
+						}
+						else	{
+							if(i==1){
+								sensorGrid.add(sensors.get(j-1));
+							}
+							else{
+								sensorGrid.add(sensors.get(j+3));
+							}
+						}
+				}
+
+			}
+		}
+
+
+		south.add(sensorGrid);
+		add(south,BorderLayout.SOUTH);
+
+		setSize(820, 700);
+		
 
 	}
 	/**
@@ -215,12 +291,17 @@ public class GUI extends JFrame{
 		}
 	}
 	public void reset(){
-
+		shell.readCommand("RESET");
+		for(JLabel l : channels){
+			l.setIcon(disabled);
+		}
+		
 	}
 	private void updateDisplay(){
 		Run curRun = shell.getCurrentRun();
-		display.append("Time: "+curRun.getElapsedTime() +"\n");
-		
+
+		display.setText("Time: "+curRun.getElapsedTime() +"\n");
+
 		ArrayList<Racer> rcrs;
 		switch(curRun.getType()){
 		case 0:
@@ -276,13 +357,14 @@ public class GUI extends JFrame{
 			break;
 		}
 	}
-	private void print(String str){
+	public void print(String str){
 //		TODO figure out how to word wrap and keep lineCount correct
 		if(!printPower) return;
 		Scanner sc = new Scanner(str);
+		FontMetrics fm = printer.getFontMetrics(printer.getFont());
 		while(sc.hasNextLine()){
 			try{
-				if((printer.getLineCount()+1)*printer.getFontMetrics(printer.getFont()).getHeight()>=printer.getHeight()){
+				if((printer.getLineCount()+1)*fm.getHeight()>=printer.getHeight()){
 					System.out.println(45);
 					int offset = printer.getLineStartOffset(1);
 					String txt = printer.getText();
@@ -292,19 +374,36 @@ public class GUI extends JFrame{
 			}catch(Exception es){
 				System.out.println(es.toString());
 			}
-			printer.append(sc.nextLine()+"\n");
+			String s = sc.nextLine()+"\n";
+			
+			if(fm.stringWidth(s)>printer.getWidth()){
+				String arr[]=s.split("\\h");
+				s="";
+				for(int i=0;i<arr.length;++i){
+					if(fm.stringWidth(s+arr[i])>printer.getWidth()){
+						printer.append(s+"\n");
+						s="";
+					}
+					else{
+						s+=arr[i]+" ";
+					}
+				}
+				
+			}
+			printer.append(s+"\n");
 		}
 	}
 	private void commands(int command){
 		String str="";
 		switch(command){
 		case 0:
-			str = "1. Event Type\n"+"2. Time\n"+"3. Add Racer\n" + "4. Clear Racer\n" + "5. End Run" + "6. New Run" + "7. Reset\n" + "8. Print\n";
+			str = "1. Event Type\n"+"2. Time\n"+"3. Add Racer\n" + "4. Clear Racer\n" + "5. End Run\n" + "6. New Run\n" + "7. Reset\n" + "8. Print\n";
 			if(shell.getCurrentRun().getType()==0){
 				str += "9. Did Not Finish\n";
 			}
 			str += "\n";
 			display.setText(str);
+			cmd=0;
 			break;
 		case 1:
 			str = "1. IND\n"+"2. PARIND\n"+"3.GRP\n\n";
@@ -371,7 +470,6 @@ public class GUI extends JFrame{
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
 					input = "";
 					commands(cmd);
 				}
@@ -383,7 +481,6 @@ public class GUI extends JFrame{
 
 	}
 	private void readCommand(){
-		//		TODO
 		boolean badInput = false;
 		switch(cmd){
 		case 0:
@@ -427,7 +524,6 @@ public class GUI extends JFrame{
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
 					input = "";
 					commands(cmd);
 				}
@@ -489,7 +585,9 @@ public class GUI extends JFrame{
 		public void actionPerformed(ActionEvent e) {
 			JButton btn = (JButton)e.getSource();
 			int chan = triggers.indexOf(btn)+1;
-			shell.readCommand("TRIG" + chan);
+			
+			if(!shell.readCommand("TRIG " + chan))
+				print(shell.getErrorMessage());
 
 		}
 
@@ -507,6 +605,8 @@ public class GUI extends JFrame{
 				switch(btn.getText()){
 				case "Printer Power":
 					printPower = !printPower;
+					if(printPower)
+						print("Printer on");
 					break;
 				case "Commands":
 					if(!commandMode){
@@ -533,13 +633,13 @@ public class GUI extends JFrame{
 					break;
 				case "2":
 					if(commandMode){
-						input+="1";
-						display.append("1");
+						input+="2";
+						display.append("2");
 					}
 					break;
 				case "3":
 					if(commandMode){
-						input+="1";
+						input+="3";
 						display.append("3");
 					}
 					break;
@@ -593,7 +693,11 @@ public class GUI extends JFrame{
 					break;
 				case "#":
 					if(commandMode){
-						readCommand();
+						if(cmd==0){
+							commands(Integer.parseInt(input));
+						}
+						else
+							readCommand();
 					}
 					break;
 				}
@@ -601,7 +705,21 @@ public class GUI extends JFrame{
 		}
 
 	}
+private class SensorListener implements ActionListener{
 
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		JComboBox<String> cb = (JComboBox<String>)e.getSource();
+		String s = (String)cb.getSelectedItem();
+		if(s.isEmpty()){
+			shell.readCommand("DISC "+(sensors.indexOf(cb)+1));
+		}
+		else{
+			shell.readCommand("CONN " + s+" "+ (sensors.indexOf(cb)+1));
+		}
+	}
+	
+}
 }
 
 

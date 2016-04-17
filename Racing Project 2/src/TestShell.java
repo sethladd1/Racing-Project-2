@@ -13,7 +13,7 @@ public class TestShell extends TestCase {
 
 	public void testInitialization(){
 //		TODO power on, IND, run number is 1, Channels are disarmed.	
-		shell = new Shell();
+		shell = new Shell(true);
 		assertTrue(shell.getPower());
 		Run r = shell.getCurrentRun();
 		assertEquals(1, r.getRunNum());
@@ -24,7 +24,7 @@ public class TestShell extends TestCase {
 		
 	}
 	public void testCommands(){
-		shell = new Shell();
+		shell = new Shell(true);
 		assertTrue(shell.readCommand("power"));
 		assertFalse(shell.readCommand("tog 1"));
 		assertTrue(shell.getErrorMessage().equals("Simulator off"));

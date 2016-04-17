@@ -21,7 +21,7 @@ public class Run {
 	private int runNum;
 	private boolean started;
 	private Racer lastFinish1, lastFinish2;
-
+	private String runTime;
 	public Run(int type, int runNum){
 		this.type=type;
 		this.runNum=runNum;
@@ -71,17 +71,20 @@ public class Run {
 		return false;
 	}
 	public String getElapsedTime(){
-		return time.getCurrentTimeStamp();
+		if(running)
+			return time.getCurrentTimeStamp();
+		else
+			return runTime;
 	}
 	public String getRunningTime(Racer r){
 		if(r.finished()){
-			return time.convertToTimestamp(r.getRunTime());
+			return Time.convertToTimestamp(r.getRunTime());
 		}
 		else if(r.started()){
-			return time.convertToTimestamp(time.elapsed()-r.getStart());
+			return Time.convertToTimestamp(time.elapsed()-r.getStart());
 		}
 		else{
-			return time.convertToTimestamp(0);
+			return Time.convertToTimestamp(0);
 		}
 	}
 	public void toggle (int channel){
@@ -107,12 +110,12 @@ public class Run {
 			return sensors[channel-1];
 		}
 		else
-			return "";
+			return null;
 	}
 	public boolean trigger (int channel){
 		switch(type){
 		case IND:
-			if((channel == 1&&channels[0])){
+			if((channel%2 == 1&&channels[channel-1])){
 				if(startQueue.isEmpty()){
 					return false;
 				}
@@ -124,7 +127,7 @@ public class Run {
 				finishQueue.add(startQueue.remove(0));
 				return true;
 			}
-			else if((channel == 2&&channels[1])){
+			else if((channel%2 == 0&&channels[channel-1])){
 				if(finishQueue.isEmpty()){
 					return false;
 				}
@@ -132,7 +135,7 @@ public class Run {
 					time.start();
 				started =true;
 				finishQueue.get(0).setFinish(time.elapsed());
-				finishQueue.remove(0);
+				lastFinish1=finishQueue.remove(0);
 				return true;
 			}
 			return false;
@@ -251,7 +254,7 @@ public class Run {
 	public Racer getLastFinish1(){
 		return lastFinish1;
 	}
-	
+
 	public Racer getLastFinish2(){
 		return lastFinish2;
 	}
@@ -264,13 +267,18 @@ public class Run {
 			}
 			Racer r = new Racer(number);
 			racers.add(r);
-			if(chan == 0){
-				startQueue.add(r);
-				chan = 1;
+			if(type==PARIND){
+				if(chan == 0){
+					startQueue.add(r);
+					chan = 1;
+				}
+				else if(chan == 1){
+					startQueue2.add(r);
+					chan = 0;
+				}
 			}
-			else if(chan == 1){
-				startQueue2.add(r);
-				chan = 0;
+			else{
+				startQueue.add(r);
 			}
 			return true;
 		}
@@ -351,7 +359,14 @@ public class Run {
 	}
 
 	public void end (){
+		runTime = getElapsedTime();
+		for(Racer r: racers){
+			if(!r.finished()){
+				r.setDNF(true);
+			}
+		}
 		running = false;
+		
 	}
 	public String export(File file){
 		//		TODO update this so it exports times in grpRanks if type is GRP, associated with rank or racer nums if they exist
@@ -390,39 +405,35 @@ public class Run {
 
 	public String print()
 	{
-		String str = "\tRUN " + runNum+"\n";
+		String str = "RUN " + runNum+"\n";
 		if(type==GRP){
 			for(int i = 0;i<grpRanks.size();++i){
 				if(i<racers.size()){
 					Racer r = racers.get(1);
-					str+=r.getNumber()+": " + time.convertToTimestamp(racers.get(i).getFinish())+"\n";
+					str+=r.getNumber()+": " + getRunningTime(r)+"\n";
 				}
 				else{
 					String rank = String.valueOf(i);
 					while(rank.length()<5){
 						rank="0"+rank;
 					}
-					str+=rank+": " +time.convertToTimestamp(grpRanks.get(i))+"\n";
-					
+					str+=rank+": " +Time.convertToTimestamp(grpRanks.get(i))+"\n";
+
 				}
 			}
 		}
 		else{
 			for(Racer r : racers){
-				str+="**************************\n";
-				str+="\tRacer: " +r.getNumber()+"\n";
-				str+="**************************\n";
-
-				if(r.started())
-					str+="Start: " +time.convertToTimestamp(r.getStart())+"\n";
-				else
-					str+="Start: Did not start\n";
-				if(r.finished()){
-					str+="Finish: " +time.convertToTimestamp(r.getFinish())+"\n";
-					str+="Run Time: " +time.convertToTimestamp(r.getRunTime())+"\n";
-				}
-				else{
-					str+="Finish: Did not finish\nRun Time: Did not finish\n";
+				str+=r.getNumber()+": ";
+				if(r.started()&&r.finished())
+					str+=getRunningTime(r);
+				else{ 
+					if(r.started() && !r.DNF()){
+						str+=getRunningTime(r) +" R";
+					}
+					if(r.DNF()){
+						str+="DNF";
+					}
 				}
 			}
 		}

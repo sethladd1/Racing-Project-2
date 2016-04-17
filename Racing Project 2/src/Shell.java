@@ -16,17 +16,24 @@ public class Shell
 	private int IND=0, PARIND=1, GRP=2;
 	private String errorMessage;
 	private static GUI ui;
-	public Shell(String filePath)
+	public Shell(String filePath, boolean noGUI)
 	{
 		curRun = new Run(0,1);
 		power = true;
 		runs = new ArrayList<Run>();
+		if(!noGUI){
 		ui = new GUI(this);
+		ui.setVisible(true);
+		}
 		readCommandsFromFile(filePath);
 	}
-	public Shell(){
+	public Shell(boolean noGUI){
 		curRun = new Run(0,1);
 		power = true;
+		if(!noGUI){
+		ui = new GUI(this);
+		ui.setVisible(true);
+		}
 		runs = new ArrayList<Run>();
 	}
 	public void commandPromptLoop(){
@@ -155,6 +162,8 @@ public class Shell
 				try{
 					chanNum = in.nextInt();
 					curRun.toggle(chanNum);
+					if(ui != null)
+						ui.syncChanIcons();
 
 				}
 				catch(InputMismatchException e){
@@ -252,8 +261,10 @@ public class Shell
 					runNum = in.nextInt();
 					for(Run r : runs){
 						if(r.getRunNum() == runNum){
-							r.print();
-							System.out.print("\n\n\n");
+							if(ui!=null)
+								ui.print(r.print());
+							else
+								r.print();
 							in.close();
 							return true;
 						}
@@ -363,11 +374,11 @@ public class Shell
 			{
 				try{
 					chanNum = in.nextInt();
-					if(!curRun.getSensor(chanNum).isEmpty()){
+					if(!(curRun.getSensor(chanNum)==null)){
 						curRun.trigger(chanNum);
 					}
 					else{
-						if(chanNum>0 && chanNum<5)
+						if(chanNum>0 && chanNum<8)
 							errorMessage = "no sensor attached to channel " + chanNum;
 						else
 							errorMessage = "invalid argument: no channel "+chanNum;
