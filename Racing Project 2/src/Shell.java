@@ -22,8 +22,8 @@ public class Shell
 		power = true;
 		runs = new ArrayList<Run>();
 		if(!noGUI){
-		ui = new GUI(this);
-		ui.setVisible(true);
+			ui = new GUI(this);
+			ui.setVisible(true);
 		}
 		readCommandsFromFile(filePath);
 	}
@@ -31,8 +31,8 @@ public class Shell
 		curRun = new Run(0,1);
 		power = true;
 		if(!noGUI){
-		ui = new GUI(this);
-		ui.setVisible(true);
+			ui = new GUI(this);
+			ui.setVisible(true);
 		}
 		runs = new ArrayList<Run>();
 	}
@@ -124,7 +124,7 @@ public class Shell
 			return true;
 		}
 		else if(power){
-			
+
 
 
 			// Resets	the	System	to	initial	state
@@ -214,11 +214,18 @@ public class Shell
 						{
 							curRun.setType(PARIND);
 						}
-						else{ 
-							in.close();
-							errorMessage = "Invalid argument";
-							return false;
-						}
+						else
+							if(type.equalsIgnoreCase("grp"))
+							{
+								curRun.setType(GRP);
+							}
+							else{
+
+								in.close();
+								errorMessage = "Invalid argument";
+								return false;
+							}
+
 				}catch(NoSuchElementException e){
 					in.close();
 					errorMessage = "Missing argument";
@@ -237,7 +244,7 @@ public class Shell
 				}
 				else{
 					Run newRun = new Run(0, curRun.getRunNum()+1);
-					for(int i=1;i<5;++i){
+					for(int i=1;i<8;++i){
 						newRun.connect(curRun.getSensor(i), i);
 						newRun.setChannelState(i, curRun.getChannel(i));
 					}

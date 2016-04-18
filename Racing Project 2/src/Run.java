@@ -22,8 +22,16 @@ public class Run {
 	private boolean started;
 	private Racer lastFinish1, lastFinish2;
 	private String runTime;
+	/**
+	 * 
+	 * @param type - IND=0,PARIND=1,GRP=3
+	 * @param runNum 
+	 */
 	public Run(int type, int runNum){
-		this.type=type;
+		if(type<0 || type>2)
+			type=0;
+		else
+			this.type=type;
 		this.runNum=runNum;
 		racers = new ArrayList<Racer>();
 		startQueue = new ArrayList<Racer>();
@@ -366,7 +374,7 @@ public class Run {
 			}
 		}
 		running = false;
-		
+
 	}
 	public String export(File file){
 		//		TODO update this so it exports times in grpRanks if type is GRP, associated with rank or racer nums if they exist
@@ -381,7 +389,7 @@ public class Run {
 					jso.addProperty(String.valueOf(racers.get(i).getNumber()), Time.convertToTimestamp(grpRanks.get(i)));
 				}
 				else{
-					String rank = String.valueOf(i);
+					String rank = String.valueOf(i+1);
 					while(rank.length()<5){
 						rank="0"+rank;
 					}
@@ -393,7 +401,7 @@ public class Run {
 		else{
 			for(Racer r : racers){
 				String val="";
-				
+
 				if(r.started()&&r.finished())
 					val=getRunningTime(r);
 				else{ 
@@ -408,7 +416,7 @@ public class Run {
 				jso.addProperty(String.valueOf(r.getNumber()), val);
 				jsObjects.add(jso);
 			}
-		
+		}
 		String output = g.toJson(jsObjects);
 		try{
 			FileWriter writer = new FileWriter(file);
@@ -416,7 +424,6 @@ public class Run {
 			writer.close();
 		} catch(IOException e){
 			errorMessage = "There was an error writing to file:\n"+e.getMessage();	
-		}
 		}
 		return errorMessage;
 
@@ -428,7 +435,7 @@ public class Run {
 		if(type==GRP){
 			for(int i = 0;i<grpRanks.size();++i){
 				if(i<racers.size()){
-					Racer r = racers.get(1);
+					Racer r = racers.get(i);
 					str+=r.getNumber()+": " + getRunningTime(r)+"\n";
 				}
 				else{
@@ -454,6 +461,7 @@ public class Run {
 						str+="DNF";
 					}
 				}
+				str+="\n";
 			}
 		}
 		System.out.print(str);
