@@ -1,3 +1,7 @@
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.io.File;
 
 
@@ -8,6 +12,9 @@ import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.*;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
 public class Shell
 {
 	private ArrayList<Run> runs;
@@ -16,6 +23,7 @@ public class Shell
 	private int IND=0, PARIND=1, GRP=2;
 	private String errorMessage;
 	private static GUI ui;
+	private ThreadedSensor[] threadedsensors=new ThreadedSensor[8];
 	public Shell(String filePath, boolean noGUI)
 	{
 		curRun = new Run(0,1);
@@ -24,15 +32,34 @@ public class Shell
 		if(!noGUI){
 			ui = new GUI(this);
 			ui.setVisible(true);
+			for(int i = 0;i<=7;i++){
+				threadedsensors[i]=new ThreadedSensor(this,i);
+				threadedsensors[i].start();
+			}
+			try {
+				threadedsensors[7].join();
+			} catch (InterruptedException e) {
+				//e.printStackTrace();
+			}
 		}
 		readCommandsFromFile(filePath);
 	}
+	void interruptThreads(){for(ThreadedSensor t:threadedsensors){t.interrupt();System.out.println(t.toString());t.jf.dispose();}}
 	public Shell(boolean noGUI){
 		curRun = new Run(0,1);
 		power = true;
 		if(!noGUI){
 			ui = new GUI(this);
 			ui.setVisible(true);
+			for(int i = 0;i<=7;i++){
+				threadedsensors[i]=new ThreadedSensor(this,i);
+				threadedsensors[i].start();
+			}
+			try {
+				threadedsensors[7].join();
+			} catch (InterruptedException e) {
+				//e.printStackTrace();
+			}
 		}
 		runs = new ArrayList<Run>();
 	}
