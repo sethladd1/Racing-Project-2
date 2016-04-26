@@ -11,10 +11,6 @@ import java.util.Scanner;
 public class GUI extends JFrame{
 	final static ImageIcon enabled = new ImageIcon("Icons/enabledChan.png");
 	final static ImageIcon disabled = new ImageIcon("Icons/disabledChan.png");
-	//	final static ImageIcon leftArrow = new ImageIcon("Icons/leftArrow.png");
-	//	final static ImageIcon rightArrow = new ImageIcon("Icons/rightArrow.png");
-	//	final static ImageIcon upArrow = new ImageIcon("Icons/upArrow.png");
-	//	final static ImageIcon downArrow = new ImageIcon("Icons/downArrow.png");
 	private ArrayList<JLabel> channels;
 	private ArrayList<JButton> triggers;
 	private ArrayList<JButton> numPad;
@@ -22,7 +18,6 @@ public class GUI extends JFrame{
 	private JTextArea display;
 	private JTextArea printer;
 	private JButton swapButton, powerButton, commandsButton, printPowerButton;
-	//	private JLabel left, right, down, up;
 	private Timer t;
 	private boolean commandMode, printPower;
 	private Shell shell;
@@ -57,11 +52,6 @@ public class GUI extends JFrame{
 		printer.setEditable(false);
 		BorderLayout bl = new BorderLayout(10, 10);
 		setLayout(bl);
-		//		left = new JLabel(leftArrow);
-		//		right = new JLabel(rightArrow);
-		//		up = new JLabel(upArrow);
-		//		down = new JLabel(downArrow);
-
 		JLabel l;
 		JButton b;
 
@@ -732,5 +722,4 @@ private class SensorListener implements ActionListener{
 	
 }
 }
-
 
