@@ -13,7 +13,7 @@ public class Run {
 	private ArrayList<Long> grpRanks;
 	private Time time;
 	private int type; //0=IND, 1=PARIND
-	private final int IND=0,PARIND=1, GRP = 2;
+	private final int IND=0,PARIND=1, GRP = 2, PARGRP=3;
 	private int chan;
 	private boolean running;
 	private boolean channels[];
@@ -28,7 +28,7 @@ public class Run {
 	 * @param runNum 
 	 */
 	public Run(int type, int runNum){
-		if(type<0 || type>2)
+		if(type<IND || type>PARGRP)
 			type=0;
 		else
 			this.type=type;
