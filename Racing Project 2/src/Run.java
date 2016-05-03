@@ -145,6 +145,9 @@ public class Run {
 				return false;
 			else{
 				time.start();
+				for(Racer r : racers){
+					r.setStart(0);
+				}
 				started = true;
 				return true;
 			}

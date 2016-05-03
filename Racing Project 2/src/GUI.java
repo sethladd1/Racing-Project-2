@@ -345,15 +345,25 @@ public class GUI extends JFrame{
 			}
 			break;
 		case 3:
-			if(curRun.hasStarted()){
-				display.append(curRun.getLastFinish1().getNumber()+": " + Time.convertToTimestamp(curRun.getLastFinish1().getFinish()) + " F");
+
+			//				if(curRun.getLastFinish1() != null)
+			//					display.append(curRun.getLastFinish1().getNumber()+": " + Time.convertToTimestamp(curRun.getLastFinish1().getFinish()) + " F");
+			rcrs = curRun.getRacers();
+			int count = 1;
+			for(Racer rc : rcrs){
+				if(count++>8)
+					break;
+				display.append(rc.getNumber() +": ");
+				if(rc.finished())
+					display.append(curRun.getRunningTime(rc) + " F\n");
+				else if(rc.DNF())
+					display.append(" DNF\n");
+				else if(rc.started())
+					display.append(" R\n");
+				else 
+					display.append(" Q\n");
 			}
-			else{
-				rcrs = curRun.getRacers();
-				for(Racer rc : rcrs){
-					display.append(rc.getNumber()+": "+curRun.getRunningTime(rc)+" Q\n");
-				}
-			}
+
 		}
 	}
 	public void print(String str){
@@ -700,105 +710,105 @@ public class GUI extends JFrame{
 							readCommand();
 					}
 				}
-//				switch(btn.getText()){
-//				case "Printer Power":
-//					printPower = !printPower;
-//					if(printPower)
-//						print("Printer on");
-//					break;
-//				case "Commands":
-//					if(!commandMode){
-//						t.stop();
-//						commandMode = true;
-//						commands(0);
-//					}
-//					else{
-//						t.start();
-//						commandMode = false;
-//					}
-//					break;
-//				case "Swap":
-//					Shell.readCommand("SWAP");
-//					if(!Shell.getErrorMessage().isEmpty()){
-//						print(Shell.getErrorMessage());
-//					}
-//					break;
-//				case "1":
-//					if(commandMode){
-//						input+="1";
-//						display.append("1");
-//					}
-//					break;
-//				case "2":
-//					if(commandMode){
-//						input+="2";
-//						display.append("2");
-//					}
-//					break;
-//				case "3":
-//					if(commandMode){
-//						input+="3";
-//						display.append("3");
-//					}
-//					break;
-//				case "4":
-//					if(commandMode){
-//						input+="4";
-//						display.append("4");
-//					}
-//					break;
-//				case "5":
-//					if(commandMode){
-//						input+="5";
-//						display.append("5");
-//					}
-//					break;
-//				case "6":
-//					if(commandMode){
-//						input+="6";
-//						display.append("6");
-//					}
-//					break;
-//				case "7":
-//					if(commandMode){
-//						input+="7";
-//						display.append("7");
-//					}
-//					break;
-//				case "8":
-//					if(commandMode){
-//						input+="8";
-//						display.append("8");
-//					}
-//					break;
-//				case "9":
-//					if(commandMode){
-//						input+="9";
-//						display.append("9");
-//					}
-//					break;
-//				case "0":
-//					if(commandMode){
-//						input+="0";
-//						display.append("0");
-//					}
-//					break;
-//				case "*":
-//					if(commandMode && cmd==2){
-//						input+="*";
-//						display.append("*");
-//					}
-//					break;
-//				case "#":
-//					if(commandMode){
-//						if(cmd==0){
-//							commands(Integer.parseInt(input));
-//						}
-//						else
-//							readCommand();
-//					}
-//					break;
-//				}
+				//				switch(btn.getText()){
+				//				case "Printer Power":
+				//					printPower = !printPower;
+				//					if(printPower)
+				//						print("Printer on");
+				//					break;
+				//				case "Commands":
+				//					if(!commandMode){
+				//						t.stop();
+				//						commandMode = true;
+				//						commands(0);
+				//					}
+				//					else{
+				//						t.start();
+				//						commandMode = false;
+				//					}
+				//					break;
+				//				case "Swap":
+				//					Shell.readCommand("SWAP");
+				//					if(!Shell.getErrorMessage().isEmpty()){
+				//						print(Shell.getErrorMessage());
+				//					}
+				//					break;
+				//				case "1":
+				//					if(commandMode){
+				//						input+="1";
+				//						display.append("1");
+				//					}
+				//					break;
+				//				case "2":
+				//					if(commandMode){
+				//						input+="2";
+				//						display.append("2");
+				//					}
+				//					break;
+				//				case "3":
+				//					if(commandMode){
+				//						input+="3";
+				//						display.append("3");
+				//					}
+				//					break;
+				//				case "4":
+				//					if(commandMode){
+				//						input+="4";
+				//						display.append("4");
+				//					}
+				//					break;
+				//				case "5":
+				//					if(commandMode){
+				//						input+="5";
+				//						display.append("5");
+				//					}
+				//					break;
+				//				case "6":
+				//					if(commandMode){
+				//						input+="6";
+				//						display.append("6");
+				//					}
+				//					break;
+				//				case "7":
+				//					if(commandMode){
+				//						input+="7";
+				//						display.append("7");
+				//					}
+				//					break;
+				//				case "8":
+				//					if(commandMode){
+				//						input+="8";
+				//						display.append("8");
+				//					}
+				//					break;
+				//				case "9":
+				//					if(commandMode){
+				//						input+="9";
+				//						display.append("9");
+				//					}
+				//					break;
+				//				case "0":
+				//					if(commandMode){
+				//						input+="0";
+				//						display.append("0");
+				//					}
+				//					break;
+				//				case "*":
+				//					if(commandMode && cmd==2){
+				//						input+="*";
+				//						display.append("*");
+				//					}
+				//					break;
+				//				case "#":
+				//					if(commandMode){
+				//						if(cmd==0){
+				//							commands(Integer.parseInt(input));
+				//						}
+				//						else
+				//							readCommand();
+				//					}
+				//					break;
+				//				}
 			}
 		}
 
