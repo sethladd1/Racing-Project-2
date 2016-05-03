@@ -12,56 +12,73 @@ import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.*;
+
+
 //
 //import javax.swing.JButton;
 //import javax.swing.JFrame;
 public class Shell
 {
-	private ArrayList<Run> runs;
-	private Run curRun;
-	private boolean power;
-	private int IND=0, PARIND=1, GRP=2;
-	private String errorMessage;
+	private static ArrayList<Run> runs;
+	private static Run curRun;
+	private static boolean power;
+	private final static int IND=0, PARIND=1, GRP=2, PARGRP=3;
+	private static String errorMessage;
 	private static GUI ui;
-//	private ThreadedSensor[] threadedsensors=new ThreadedSensor[8];
+
+	//	private ThreadedSensor[] threadedsensors=new ThreadedSensor[8];
 	public Shell(String filePath, boolean noGUI)
 	{
+
 		curRun = new Run(0,1);
 		power = true;
 		runs = new ArrayList<Run>();
+		runs.add(curRun);
 		if(!noGUI){
-			ui = new GUI(this);
+//			TODO  set Sensors arg true, when sensor trip button are in place in GUI
+			new Sensors(8, false);
+			ui = new GUI();
 			ui.setVisible(true);
-//			for(int i = 0;i<=7;i++){
-//				threadedsensors[i]=new ThreadedSensor(this,i);
-//				threadedsensors[i].start();
-//			}
-//			try {
-//				threadedsensors[7].join();
-//			} catch (InterruptedException e) {
-//				//e.printStackTrace();
-//			}
+			//			for(int i = 0;i<=7;i++){
+			//				threadedsensors[i]=new ThreadedSensor(this,i);
+			//				threadedsensors[i].start();
+			//			}
+			//			try {
+			//				threadedsensors[7].join();
+			//			} catch (InterruptedException e) {
+			//				//e.printStackTrace();
+			//			}
+		}
+		else{
+			new Sensors(8, false);
 		}
 		readCommandsFromFile(filePath);
 	}
-//	void interruptThreads(){for(ThreadedSensor t:threadedsensors){t.interrupt();System.out.println(t.toString());t.jf.dispose();}}
+	//	void interruptThreads(){for(ThreadedSensor t:threadedsensors){t.interrupt();System.out.println(t.toString());t.jf.dispose();}}
 	public Shell(boolean noGUI){
 		curRun = new Run(0,1);
 		power = true;
+
 		if(!noGUI){
-			ui = new GUI(this);
+//			TODO  set Sensors arg true, when sensor trip button are in place in GUI
+			new Sensors(8, false);
+			ui = new GUI();
 			ui.setVisible(true);
-//			for(int i = 0;i<=7;i++){
-//				threadedsensors[i]=new ThreadedSensor(this,i);
-//				threadedsensors[i].start();
-//			}
-//			try {
-//				threadedsensors[7].join();
-//			} catch (InterruptedException e) {
-//				//e.printStackTrace();
-//			}
+			//			for(int i = 0;i<=7;i++){
+			//				threadedsensors[i]=new ThreadedSensor(this,i);
+			//				threadedsensors[i].start();
+			//			}
+			//			try {
+			//				threadedsensors[7].join();
+			//			} catch (InterruptedException e) {
+			//				//e.printStackTrace();
+			//			}
+		}
+		else{
+			new Sensors(8, false);
 		}
 		runs = new ArrayList<Run>();
+		runs.add(curRun);
 	}
 	public void commandPromptLoop(){
 		Scanner in;
@@ -100,7 +117,7 @@ public class Shell
 	 * @param line - line to be processed
 	 * @return - whether or not the command was read or not
 	 */
-	public boolean readCommand(String line)
+	public static boolean readCommand(String line)
 	{
 		Scanner in = new Scanner(line);
 		errorMessage = "";
@@ -188,7 +205,12 @@ public class Shell
 			{
 				try{
 					chanNum = in.nextInt();
-					curRun.toggle(chanNum);
+					if(Sensors.array.length<chanNum || chanNum<1){
+						errorMessage = "Invalid argument: no channel "+chanNum;
+						in.close();
+						return false;
+					}
+					Sensors.array[chanNum-1].toggle();
 					if(ui != null)
 						ui.syncChanIcons();
 
@@ -205,9 +227,20 @@ public class Shell
 			// <sensor>	=	{EYE,	GATE,	PAD}
 			else if(commandToken.equalsIgnoreCase("conn"))
 			{
-				String device = in.next();
-				chanNum = in.nextInt();
-				curRun.connect(device, chanNum);
+				try{
+					String device = in.next();
+					chanNum = in.nextInt();
+					if(Sensors.array.length<chanNum || chanNum<1){
+						errorMessage = "Invalid argument: no channel "+chanNum;
+						in.close();
+						return false;
+					}
+					Sensors.array[chanNum-1].connect(device);
+				}catch(Exception e){
+					errorMessage = "Missing or invalid argument";
+					in.close();
+					return false;
+				}
 			}
 
 			// Disconnect	a	sensor from channel	<NUM>
@@ -215,7 +248,14 @@ public class Shell
 			{
 				try{
 					chanNum = in.nextInt();
-					curRun.connect("", chanNum);
+					if(chanNum>Sensors.array.length || chanNum<1){
+						errorMessage = "Invalid argument";
+						in.close();
+						return false;
+					}
+					else{
+						Sensors.array[chanNum-1].disconnect();
+					}
 				}catch(Exception e){
 					errorMessage = "Missing or invalid argument";
 					in.close();
@@ -271,10 +311,6 @@ public class Shell
 				}
 				else{
 					Run newRun = new Run(0, curRun.getRunNum()+1);
-					for(int i=1;i<8;++i){
-						newRun.connect(curRun.getSensor(i), i);
-						newRun.setChannelState(i, curRun.getChannel(i));
-					}
 					curRun = newRun;
 					runs.add(curRun);
 				}
@@ -408,14 +444,15 @@ public class Shell
 			{
 				try{
 					chanNum = in.nextInt();
-					if(!(curRun.getSensor(chanNum)==null)){
-						curRun.trigger(chanNum);
+					if(chanNum>Sensors.array.length){
+						errorMessage = "invalid argument: no channel "+chanNum;
+						return false;
+					}
+					if(Sensors.array[chanNum-1].isEnabledandConnected()){
+						trigger(chanNum);
 					}
 					else{
-						if(chanNum>0 && chanNum<8)
-							errorMessage = "no sensor attached to channel " + chanNum;
-						else
-							errorMessage = "invalid argument: no channel "+chanNum;
+						errorMessage = "Sensor "+chanNum+" disarmed or detached";
 						in.close();
 						return false;
 					}
@@ -431,10 +468,13 @@ public class Shell
 			// Start	trigger	channel	1 (shorthand	for	TRIG	1)
 			else if(commandToken.equalsIgnoreCase("start"))
 			{
-				if(!curRun.trigger(1)){
-					errorMessage = "no racers in the start queue";
+				if(!Sensors.array[0].isEnabledandConnected()){
+					errorMessage = "Sensor disabled or disconnected";
 					in.close();
 					return false;
+				}
+				else{
+					curRun.start();
 				}
 
 			}
@@ -442,10 +482,13 @@ public class Shell
 			// Finish	trigger	channel	2 (shorthand	for	TRIG	2)
 			else if(commandToken.equalsIgnoreCase("finish"))
 			{
-				if(!curRun.trigger(2)){
-					errorMessage = "no racers in the finish queue";
+				if(!Sensors.array[0].isEnabledandConnected()){
+					errorMessage = "Sensor disabled or disconnected";
 					in.close();
 					return false;
+				}
+				else{
+					curRun.finish();
 				}
 
 			}
@@ -464,16 +507,70 @@ public class Shell
 			return false;
 		}
 	}
-	public boolean getPower(){
+	public static boolean trigger(int i){
+		//TODO
+		switch(curRun.getType()){
+		case IND:
+			if(i%2==1){
+				return curRun.start();
+			}
+			else{
+				return curRun.finish();
+			}
+
+		case PARIND:
+			switch(i){
+			case 1:
+				return curRun.start(1);
+
+			case 2:
+				return curRun.finish(1);
+
+			case 3: 
+				return curRun.start(2);
+
+			case 4:
+				return curRun.finish(2);
+			default:
+				return false;
+			}
+
+		case GRP:
+			if(i==1){
+				return curRun.start();
+			}
+			if(i==2){
+				return curRun.finish();
+			}
+			return false;
+		case PARGRP:
+			if(i==1){
+				if(curRun.hasStarted()){
+					return curRun.finish(1);
+				}
+				else{
+					return curRun.start(i);
+				}
+			}
+			else{
+				return curRun.finish(i);
+			}
+		default:
+			return false;
+			
+		}
+
+	}
+	public static boolean getPower(){
 		return power;
 	}
-	public String getErrorMessage(){
+	public static String getErrorMessage(){
 		return errorMessage;
 	}
-	public Run getCurrentRun(){
+	public static Run getCurrentRun(){
 		return curRun;
 	}
-	public ArrayList<Run> getRuns(){
+	public static ArrayList<Run> getRuns(){
 		return runs;
 	}
 

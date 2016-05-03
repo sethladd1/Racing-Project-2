@@ -20,14 +20,13 @@ public class GUI extends JFrame{
 	private JButton swapButton, powerButton, commandsButton, printPowerButton;
 	private Timer t;
 	private boolean commandMode, printPower;
-	private Shell shell;
+	//	private Shell shell;
 	//	XXX: as user presses number buttons append the number to input; read input when '#' is pressed; 
 	private String input;
 	private int cmd;
 	private ArrayList<String> printerText;
-	public GUI(Shell s){
+	public GUI(){
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		shell = s;
 		input ="";
 		cmd=0;
 		channels = new ArrayList<JLabel>();
@@ -37,7 +36,7 @@ public class GUI extends JFrame{
 		display.setEditable(false);
 		display.setBackground(Color.BLACK);
 		display.setForeground(Color.WHITE);
-		
+
 		display.setFont(new Font(display.getFont().getFontName(), Font.BOLD, 11));
 		numPad = new ArrayList<JButton>();
 		swapButton = new JButton("Swap");
@@ -108,7 +107,7 @@ public class GUI extends JFrame{
 	}
 
 	private void setUpUI(){
-//		Center Panel
+		//		Center Panel
 		JPanel center = new JPanel();
 		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 		JPanel trigChanGrid = new JPanel();
@@ -122,7 +121,7 @@ public class GUI extends JFrame{
 		JLabel title = new JLabel("ChronoTimer 1009");
 
 		JLabel l;
-		JButton b;
+
 
 		trigChanGrid.add(new JLabel());
 		for(int i=1; i<8; i+=2){
@@ -263,32 +262,32 @@ public class GUI extends JFrame{
 		add(south,BorderLayout.SOUTH);
 
 		setSize(820, 700);
-		
+
 
 	}
 	/**
 	 * called by shell if a channel is toggled by cmdline to ensure it shows in the GUI
 	 */
 	public void syncChanIcons(){
-		Run curRun = shell.getCurrentRun();
-		for(int i=1;i<9; i++){
-			if(curRun.getChannel(i)){
-				channels.get(i-1).setIcon(enabled);
+		Run curRun = Shell.getCurrentRun();
+		for(int i=0;i<Sensors.array.length; i++){
+			if(Sensors.array[i].isEnabled()){
+				channels.get(i).setIcon(enabled);
 			}
 			else{
-				channels.get(i-1).setIcon(disabled);
+				channels.get(i).setIcon(disabled);
 			}
 		}
 	}
 	public void reset(){
-		shell.readCommand("RESET");
+		Shell.readCommand("RESET");
 		for(JLabel l : channels){
 			l.setIcon(disabled);
 		}
-		
+
 	}
 	private void updateDisplay(){
-		Run curRun = shell.getCurrentRun();
+		Run curRun = Shell.getCurrentRun();
 
 		display.setText("Time: "+curRun.getElapsedTime() +"\n");
 
@@ -328,12 +327,12 @@ public class GUI extends JFrame{
 				display.append("\n");
 			Racer r1 = curRun.getLastFinish1();
 			Racer r2 = curRun.getLastFinish2();
-			
+
 			if(r1!=null)
 				display.append(r1.getNumber()+": "+curRun.getRunningTime(r1)+" F   ");
 			if(r1!=null)
 				display.append(r2.getNumber()+": "+curRun.getRunningTime(r2)+" F");
-			
+
 			break;
 		case 2:
 			ArrayList<Long> ranks = curRun.getGroupRanks();
@@ -342,9 +341,19 @@ public class GUI extends JFrame{
 				while(rank.length()<5)
 					rank = "0"+rank;
 				display.append(rank + " " +Time.convertToTimestamp(ranks.get(ranks.size()-1))+"\n");
-				
+
 			}
 			break;
+		case 3:
+			if(curRun.hasStarted()){
+				display.append(curRun.getLastFinish1().getNumber()+": " + Time.convertToTimestamp(curRun.getLastFinish1().getFinish()) + " F");
+			}
+			else{
+				rcrs = curRun.getRacers();
+				for(Racer rc : rcrs){
+					display.append(rc.getNumber()+": "+curRun.getRunningTime(rc)+" Q\n");
+				}
+			}
 		}
 	}
 	public void print(String str){
@@ -364,7 +373,7 @@ public class GUI extends JFrame{
 				System.out.println(es.toString());
 			}
 			String s = sc.nextLine()+"\n";
-			
+
 			if(fm.stringWidth(s)>printer.getWidth()){
 				String arr[]=s.split("\\h");
 				s="";
@@ -377,17 +386,18 @@ public class GUI extends JFrame{
 						s+=arr[i]+" ";
 					}
 				}
-				
+
 			}
 			printer.append(s+"\n");
 		}
+		sc.close();
 	}
 	private void commands(int command){
 		String str="";
 		switch(command){
 		case 0:
 			str = "1. Event Type\n"+"2. Time\n"+"3. Add Racer\n" + "4. Clear Racer\n" + "5. End Run\n" + "6. New Run\n" + "7. Reset\n" + "8. Print\n9.Export\n";
-			if(shell.getCurrentRun().getType()==0){
+			if(Shell.getCurrentRun().getType()==0){
 				str += "10. Did Not Finish\n";
 			}
 			str += "\n";
@@ -395,7 +405,7 @@ public class GUI extends JFrame{
 			cmd=0;
 			break;
 		case 1:
-			str = "1. IND\n"+"2. PARIND\n"+"3.GRP\n\n";
+			str = "1. IND\n"+"2. PARIND\n"+"3.GRP\n4.PARGRP\n";
 			cmd=1;
 			input="";
 			break;
@@ -415,8 +425,8 @@ public class GUI extends JFrame{
 			cmd=4;
 			break;
 		case 5:
-			if(!shell.readCommand("ENDRUN")){
-				print(shell.getErrorMessage());
+			if(!Shell.readCommand("ENDRUN")){
+				print(Shell.getErrorMessage());
 			}
 			input="";
 			cmd=0;
@@ -424,8 +434,8 @@ public class GUI extends JFrame{
 			t.start();
 			break;
 		case 6:
-			if(!shell.readCommand("NEWRUN")){
-				print(shell.getErrorMessage());
+			if(!Shell.readCommand("NEWRUN")){
+				print(Shell.getErrorMessage());
 			}
 			input="";
 			cmd=0;
@@ -445,13 +455,13 @@ public class GUI extends JFrame{
 			input="";
 			break;
 		case 9:
-//			TODO exprt
+			//			TODO exprt
 			str ="Enter Run Number: ";
 			cmd=9;
 			input="";
 			break;
 		case 10:
-			shell.readCommand("DNF");
+			Shell.readCommand("DNF");
 			input="";
 			cmd=0;
 			commandMode=false;
@@ -481,11 +491,13 @@ public class GUI extends JFrame{
 			break;
 		case 1:
 			if(input.equals("1"))
-				shell.readCommand("EVENT IND");
+				Shell.readCommand("EVENT IND");
 			else if(input.equals("2"))
-				shell.readCommand("EVENT PARIND");
+				Shell.readCommand("EVENT PARIND");
 			else if(input.equals("3"))
-				shell.readCommand("EVENT GRP");
+				Shell.readCommand("EVENT GRP");
+			else if(input.equals("4"))
+				Shell.readCommand("EVENT PARGRP");
 			else
 				badInput=true;
 			break;
@@ -495,28 +507,28 @@ public class GUI extends JFrame{
 				badInput=true;
 			}
 			else{
-				if(!shell.readCommand("TIME "+arr[0]+":"+arr[1]+":"+arr[2]))
-					print(shell.getErrorMessage());
+				if(!Shell.readCommand("TIME "+arr[0]+":"+arr[1]+":"+arr[2]))
+					print(Shell.getErrorMessage());
 
 			}
-			
+
 			break;
 		case 3:
-			if(!shell.readCommand("NUM " + input))
-				print(shell.getErrorMessage());
-			
+			if(!Shell.readCommand("NUM " + input))
+				print(Shell.getErrorMessage());
+
 			break;
 		case 4:
-			if(!shell.readCommand("CLR " + input))
-				print(shell.getErrorMessage());
+			if(!Shell.readCommand("CLR " + input))
+				print(Shell.getErrorMessage());
 			break;
 		case 8:
-			if(!shell.readCommand("PRINT " + input))
-				print(shell.getErrorMessage());
+			if(!Shell.readCommand("PRINT " + input))
+				print(Shell.getErrorMessage());
 			break;
 		case 9: 
-			if(!shell.readCommand("EXPORT " + input))
-				print(shell.getErrorMessage());
+			if(!Shell.readCommand("EXPORT " + input))
+				print(Shell.getErrorMessage());
 			break;
 		}
 		if(badInput){
@@ -543,17 +555,17 @@ public class GUI extends JFrame{
 		public void mousePressed(MouseEvent e){
 			JLabel l = (JLabel)e.getSource();
 			ImageIcon icon = (ImageIcon) l.getIcon();
-			int minX = l.getWidth()/2 - icon.getIconWidth()/2;
-			int maxX = l.getWidth()/2 + icon.getIconWidth()/2;
-			int minY = l.getHeight()/2 - icon.getIconHeight()/2;
-			int maxY = l.getHeight()/2 + icon.getIconHeight()/2;
+			//			int minX = l.getWidth()/2 - icon.getIconWidth()/2;
+			//			int maxX = l.getWidth()/2 + icon.getIconWidth()/2;
+			//			int minY = l.getHeight()/2 - icon.getIconHeight()/2;
+			//			int maxY = l.getHeight()/2 + icon.getIconHeight()/2;
 
 			int centerX;
 			int centerY; 
 			int x, y;
 			if(icon==disabled || icon == enabled){
 				int chan =  channels.indexOf(l)+1;
-				if(shell.readCommand("TOG "+chan)){
+				if(Shell.readCommand("TOG "+chan)){
 					int rad = icon.getIconWidth()/2;
 					centerX = l.getWidth()/2;
 					centerY = l.getHeight()/2;
@@ -571,7 +583,7 @@ public class GUI extends JFrame{
 				}
 				else{
 					if(printPower){
-						printer.append(shell.getErrorMessage());
+						printer.append(Shell.getErrorMessage());
 					}
 				}
 			}
@@ -586,9 +598,9 @@ public class GUI extends JFrame{
 		public void actionPerformed(ActionEvent e) {
 			JButton btn = (JButton)e.getSource();
 			int chan = triggers.indexOf(btn)+1;
-			
-			if(!shell.readCommand("TRIG " + chan))
-				print(shell.getErrorMessage());
+
+			if(!Shell.readCommand("TRIG " + chan))
+				print(Shell.getErrorMessage());
 
 		}
 
@@ -599,17 +611,16 @@ public class GUI extends JFrame{
 		public void actionPerformed(ActionEvent e) {
 			JButton btn = (JButton) e.getSource();
 			if(btn== powerButton){
-				shell.readCommand("POWER");
+				Shell.readCommand("POWER");
 				return;
 			}
-			if(shell.getPower()){
-				switch(btn.getText()){
-				case "Printer Power":
+			if(Shell.getPower()){
+				if(btn == printPowerButton){
 					printPower = !printPower;
 					if(printPower)
 						print("Printer on");
-					break;
-				case "Commands":
+				}
+				else if(btn == commandsButton){
 					if(!commandMode){
 						t.stop();
 						commandMode = true;
@@ -619,80 +630,67 @@ public class GUI extends JFrame{
 						t.start();
 						commandMode = false;
 					}
-					break;
-				case "Swap":
-					shell.readCommand("SWAP");
-					if(!shell.getErrorMessage().isEmpty()){
-						print(shell.getErrorMessage());
+				}else if(btn == swapButton){
+					Shell.readCommand("SWAP");
+					if(!Shell.getErrorMessage().isEmpty()){
+						print(Shell.getErrorMessage());
 					}
-					break;
-				case "1":
+				}else if(btn == numPad.get(0)){
 					if(commandMode){
 						input+="1";
 						display.append("1");
 					}
-					break;
-				case "2":
+				}else if(btn == numPad.get(1)){
 					if(commandMode){
 						input+="2";
 						display.append("2");
 					}
-					break;
-				case "3":
+				}else if(btn == numPad.get(2)){
 					if(commandMode){
 						input+="3";
 						display.append("3");
 					}
-					break;
-				case "4":
+				}else if(btn == numPad.get(3)){
 					if(commandMode){
 						input+="4";
 						display.append("4");
 					}
-					break;
-				case "5":
+				}else if(btn == numPad.get(4)){
 					if(commandMode){
 						input+="5";
 						display.append("5");
 					}
-					break;
-				case "6":
+				}else if(btn == numPad.get(5)){
 					if(commandMode){
 						input+="6";
 						display.append("6");
 					}
-					break;
-				case "7":
+				}else if(btn == numPad.get(6)){
 					if(commandMode){
 						input+="7";
 						display.append("7");
 					}
-					break;
-				case "8":
+				}else if(btn == numPad.get(7)){
 					if(commandMode){
 						input+="8";
 						display.append("8");
 					}
-					break;
-				case "9":
+				}else if(btn == numPad.get(8)){
 					if(commandMode){
 						input+="9";
 						display.append("9");
 					}
-					break;
-				case "0":
-					if(commandMode){
-						input+="0";
-						display.append("0");
-					}
-					break;
-				case "*":
+				}else if(btn == numPad.get(9)){
 					if(commandMode && cmd==2){
 						input+="*";
 						display.append("*");
 					}
-					break;
-				case "#":
+				}else if(btn == numPad.get(10)){
+					if(commandMode){
+						input+="0";
+						display.append("0");
+					}
+				}else if(btn == numPad.get(11)){
 					if(commandMode){
 						if(cmd==0){
 							commands(Integer.parseInt(input));
@@ -700,26 +698,124 @@ public class GUI extends JFrame{
 						else
 							readCommand();
 					}
-					break;
 				}
+//				switch(btn.getText()){
+//				case "Printer Power":
+//					printPower = !printPower;
+//					if(printPower)
+//						print("Printer on");
+//					break;
+//				case "Commands":
+//					if(!commandMode){
+//						t.stop();
+//						commandMode = true;
+//						commands(0);
+//					}
+//					else{
+//						t.start();
+//						commandMode = false;
+//					}
+//					break;
+//				case "Swap":
+//					Shell.readCommand("SWAP");
+//					if(!Shell.getErrorMessage().isEmpty()){
+//						print(Shell.getErrorMessage());
+//					}
+//					break;
+//				case "1":
+//					if(commandMode){
+//						input+="1";
+//						display.append("1");
+//					}
+//					break;
+//				case "2":
+//					if(commandMode){
+//						input+="2";
+//						display.append("2");
+//					}
+//					break;
+//				case "3":
+//					if(commandMode){
+//						input+="3";
+//						display.append("3");
+//					}
+//					break;
+//				case "4":
+//					if(commandMode){
+//						input+="4";
+//						display.append("4");
+//					}
+//					break;
+//				case "5":
+//					if(commandMode){
+//						input+="5";
+//						display.append("5");
+//					}
+//					break;
+//				case "6":
+//					if(commandMode){
+//						input+="6";
+//						display.append("6");
+//					}
+//					break;
+//				case "7":
+//					if(commandMode){
+//						input+="7";
+//						display.append("7");
+//					}
+//					break;
+//				case "8":
+//					if(commandMode){
+//						input+="8";
+//						display.append("8");
+//					}
+//					break;
+//				case "9":
+//					if(commandMode){
+//						input+="9";
+//						display.append("9");
+//					}
+//					break;
+//				case "0":
+//					if(commandMode){
+//						input+="0";
+//						display.append("0");
+//					}
+//					break;
+//				case "*":
+//					if(commandMode && cmd==2){
+//						input+="*";
+//						display.append("*");
+//					}
+//					break;
+//				case "#":
+//					if(commandMode){
+//						if(cmd==0){
+//							commands(Integer.parseInt(input));
+//						}
+//						else
+//							readCommand();
+//					}
+//					break;
+//				}
 			}
 		}
 
 	}
-private class SensorListener implements ActionListener{
+	private class SensorListener implements ActionListener{
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		JComboBox<String> cb = (JComboBox<String>)e.getSource();
-		String s = (String)cb.getSelectedItem();
-		if(s.isEmpty()){
-			shell.readCommand("DISC "+(sensors.indexOf(cb)+1));
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JComboBox<String> cb = (JComboBox<String>)e.getSource();
+			String s = (String)cb.getSelectedItem();
+			if(s.isEmpty()){
+				Shell.readCommand("DISC "+(sensors.indexOf(cb)+1));
+			}
+			else{
+				Shell.readCommand("CONN " + s+" "+ (sensors.indexOf(cb)+1));
+			}
 		}
-		else{
-			shell.readCommand("CONN " + s+" "+ (sensors.indexOf(cb)+1));
-		}
+
 	}
-	
-}
 }
 

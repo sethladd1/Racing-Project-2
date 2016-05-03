@@ -19,7 +19,7 @@ public class TestShell extends TestCase {
 		assertEquals(1, r.getRunNum());
 		assertEquals(0, r.getType());
 		for(int i=1; i<5; ++i){
-			assertFalse("No channels should be armed",r.getChannel(i));
+			assertFalse("No channels should be armed",Sensors.array[i].isEnabled());
 		}
 		
 	}
@@ -35,21 +35,21 @@ public class TestShell extends TestCase {
 		
 		ArrayList<Racer> rc= r.getRacers();
 		assertTrue(shell.readCommand("tog 1"));
-		assertTrue(r.getChannel(1));
+		assertTrue(Sensors.array[1].isEnabled());
 		assertTrue(shell.readCommand("tog 1"));
-		assertFalse(r.getChannel(1));
+		assertFalse(Sensors.array[1].isEnabled());
 		assertTrue(shell.readCommand("tog 2"));
-		assertTrue(r.getChannel(2));
+		assertTrue(Sensors.array[2].isEnabled());
 		assertTrue(shell.readCommand("tog 2"));
-		assertFalse(r.getChannel(2));
+		assertFalse(Sensors.array[2].isEnabled());
 		assertTrue(shell.readCommand("tog 3"));
-		assertTrue(r.getChannel(3));
+		assertTrue(Sensors.array[3].isEnabled());
 		assertTrue(shell.readCommand("tog 3"));
-		assertFalse(r.getChannel(3));
+		assertFalse(Sensors.array[3].isEnabled());
 		assertTrue(shell.readCommand("tog 4"));
-		assertTrue(r.getChannel(4));
+		assertTrue(Sensors.array[4].isEnabled());
 		assertTrue(shell.readCommand("tog 4"));
-		assertFalse(r.getChannel(4));
+		assertFalse(Sensors.array[4].isEnabled());
 		
 		assertTrue(shell.readCommand("tog 1"));
 		assertTrue(shell.readCommand("tog 2"));
@@ -74,7 +74,7 @@ public class TestShell extends TestCase {
 		r.print();
 		assertTrue(shell.readCommand("newrun"));
 		
-//		TODO check every command possible
+		
 		
 	}
 //	public void testCommandsFromFile(){

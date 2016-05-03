@@ -3,8 +3,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 
@@ -24,7 +24,7 @@ public class Run {
 	private String runTime;
 	/**
 	 * 
-	 * @param type - IND=0,PARIND=1,GRP=3
+	 * @param type - IND=0,PARIND=1,GRP=2,PARGRP=3
 	 * @param runNum 
 	 */
 	public Run(int type, int runNum){
@@ -47,7 +47,7 @@ public class Run {
 		sensors = new String[8];
 	}
 	public boolean setType(int type){
-		if(running && (type == IND || type == PARIND || type == GRP)){
+		if(running && (type == IND || type == PARIND || type == GRP||type==PARGRP)){
 			this.type=type;
 			return true;
 		}
@@ -95,35 +95,34 @@ public class Run {
 			return Time.convertToTimestamp(0);
 		}
 	}
-	public void toggle (int channel){
-		if(channel<=channels.length && channel>0)
-			channels[channel-1]=!channels[channel-1];
-	}
-	public void setChannelState(int channel, boolean state){
-		if(channel<=channels.length && channel>0)
-			channels[channel-1]=state;
-	}
-	public boolean connect(String sensor, int channel){
-		if(channel<=channels.length && channel>0){
-			sensors[channel-1] = sensor;
-			return true;
-		}
-		else{
-			return false;
-		}
-
-	}
-	public String getSensor(int channel){
-		if(channel<=channels.length && channel>0){
-			return sensors[channel-1];
-		}
-		else
-			return null;
-	}
-	public boolean trigger (int channel){
-		switch(type){
-		case IND:
-			if((channel%2 == 1&&channels[channel-1])){
+	//	public void toggle (int channel){
+	//		if(channel<=channels.length && channel>0)
+	//			channels[channel-1]=!channels[channel-1];
+	//	}
+	//	public void setChannelState(int channel, boolean state){
+	//		if(channel<=channels.length && channel>0)
+	//			channels[channel-1]=state;
+	//	}
+	//	public boolean connect(String sensor, int channel){
+	//		if(channel<=channels.length && channel>0){
+	//			sensors[channel-1] = sensor;
+	//			return true;
+	//		}
+	//		else{
+	//			return false;
+	//		}
+	//
+	//	}
+	//	public String getSensor(int channel){
+	//		if(channel<=channels.length && channel>0){
+	//			return sensors[channel-1];
+	//		}
+	//		else
+	//			return null;
+	//	}
+	public boolean start(int lane){
+		if(type==PARIND){
+			if(lane==1){
 				if(startQueue.isEmpty()){
 					return false;
 				}
@@ -135,32 +134,7 @@ public class Run {
 				finishQueue.add(startQueue.remove(0));
 				return true;
 			}
-			else if((channel%2 == 0&&channels[channel-1])){
-				if(finishQueue.isEmpty()){
-					return false;
-				}
-				if(!started)
-					time.start();
-				started =true;
-				finishQueue.get(0).setFinish(time.elapsed());
-				lastFinish1=finishQueue.remove(0);
-				return true;
-			}
-			return false;
-		case PARIND:
-			if((channel == 1&&channels[0])){
-				if(startQueue.isEmpty()){
-					return false;
-				}
-				if(!started)
-					time.start();
-				started = true;
-
-				startQueue.get(0).setStart(time.elapsed());
-				finishQueue.add(startQueue.remove(0));
-				return true;
-			}
-			else if((channel == 3&&channels[2])){
+			else if(lane==2){
 				if(startQueue2.isEmpty()){
 					return false;
 				}
@@ -172,7 +146,69 @@ public class Run {
 				finishQueue2.add(startQueue2.remove(0));
 				return true;
 			}
-			else if((channel == 2&&channels[1])){
+			return false;
+		}
+		else
+			return start();
+	}
+	public boolean start(){
+		if(type==IND || type==PARIND){
+			if(startQueue.isEmpty()){
+				return false;
+			}
+			if(!started)
+				time.start();
+			started = true;
+
+			startQueue.get(0).setStart(time.elapsed());
+			finishQueue.add(startQueue.remove(0));
+			return true;
+		}
+		if(type==GRP || type ==PARGRP){
+			if(started) 
+				return false;
+			else{
+				time.start();
+				started = true;
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean finish(){
+		if(type==IND){
+			if(finishQueue.isEmpty()){
+				return false;
+			}
+			if(!started)
+				time.start();
+			started =true;
+			finishQueue.get(0).setFinish(time.elapsed());
+			lastFinish1=finishQueue.remove(0);
+			return true;
+		}
+		if(type==GRP){
+			if(started){
+				grpRanks.add(time.elapsed());
+				if(grpRanks.size()<=racers.size()){
+					racers.get(grpRanks.size()-1).setFinish(grpRanks.get(grpRanks.size()-1));
+				}
+				return true;
+			}
+			else
+				return false;
+		}
+		return false;
+
+	}
+	public boolean hasStarted(){
+		return started;
+	}
+	public boolean finish(int lane){ 
+		if(!running) 
+			return false;
+		if(type==PARIND){
+			if(lane==1){
 				if(finishQueue.isEmpty()){
 					return false;
 				}
@@ -183,7 +219,7 @@ public class Run {
 				lastFinish1 = finishQueue.remove(0);
 				return true;
 			}
-			else if (channel == 4&&channels[3]){
+			if(lane==2){
 				if(finishQueue2.isEmpty()){
 					return false;
 				}
@@ -194,33 +230,22 @@ public class Run {
 				lastFinish2 = finishQueue2.remove(0);
 				return true;
 			}
-			return false;
-		case GRP:
-			if(channel == 1&& channels[0]){
-				if(started) 
-					return false;
-				else{
-					time.start();
-					started = true;
-					return true;
-				}
-			}
-			if(channel == 2 && channels[1]){
-				if(started){
-					grpRanks.add(time.elapsed());
-					if(grpRanks.size()<=racers.size()){
-						racers.get(grpRanks.size()-1).setFinish(grpRanks.get(grpRanks.size()-1));
-					}
-					return true;
-				}
-				else
-					return false;
-			}
-			return false;
-		default:
-			return false;
 		}
+		else if(type==PARGRP){
+			if(lane>0&&lane<=racers.size()){
+				if(!racers.get(lane-1).finished()){
+					racers.get(lane-1).setFinish(time.elapsed());
+					lastFinish1=racers.get(lane-1);
+					return true;
+				}
+			}
+			else{
+				return false;
+			}
+		}
+		return finish();
 	}
+	
 	public ArrayList<Long> getGroupRanks(){
 		return grpRanks;
 	}
@@ -267,12 +292,16 @@ public class Run {
 		return lastFinish2;
 	}
 	public boolean addRacer (int number){
-		if(running && type != GRP){
-			for(Racer r : racers){
-				if(r.getNumber() == number){
-					return false;
-				}
+		if(!running){
+			return false;
+		}
+		for(Racer r : racers){
+			if(r.getNumber() == number){
+				return false;
 			}
+		}
+		if(type != GRP){
+			
 			Racer r = new Racer(number);
 			racers.add(r);
 			if(type==PARIND){
@@ -290,12 +319,7 @@ public class Run {
 			}
 			return true;
 		}
-		if(type==GRP){
-			for(Racer r : racers){
-				if(r.getNumber() == number){
-					return false;
-				}
-			}
+		else if(type==GRP){
 			Racer r = new Racer(number);
 			if(grpRanks.size()>racers.size()){
 				long t = grpRanks.get(racers.size());
@@ -308,6 +332,11 @@ public class Run {
 				racers.add(r);				
 			}
 			return true;
+		}
+		else if(type==PARGRP){
+			Racer r = new Racer(number);
+			r.setStart(0);
+			racers.add(r);
 		}
 		return false;
 	}
@@ -325,13 +354,7 @@ public class Run {
 		return false;
 	}
 
-	// chan-1 is the index in channels because the channels are numbered 1-4
-	public boolean getChannel(int chan){
-		if(chan<= channels.length && chan>0){
-			return channels[chan-1];
-		}
-		return false;
-	}
+
 	public boolean removeRacer(int racerNum){
 
 		for(Racer r : racers){
@@ -374,6 +397,7 @@ public class Run {
 			}
 		}
 		running = false;
+		HTTPHandler.sendData(this);
 
 	}
 	public String export(File file){
@@ -385,6 +409,7 @@ public class Run {
 		if(type==GRP){
 			for(int i=0;i<grpRanks.size();++i){
 				jso = new JsonObject();
+				
 				if(i<racers.size()){
 					jso.addProperty(String.valueOf(racers.get(i).getNumber()), Time.convertToTimestamp(grpRanks.get(i)));
 				}
