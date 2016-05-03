@@ -15,13 +15,19 @@ public class HTTPHandler {
 	private static Run curRun;
 	private static ArrayList<JsonObject> names;
 	private static ArrayList<RacerStats> stats;
+	private static String server;
+	public HTTPHandler(String server){
+		HTTPHandler.server = server;
+		names = new ArrayList<JsonObject>();
+		stats = new ArrayList<HTTPHandler.RacerStats>();
+	}
 	public static void sendData(Run run){
 		try {
 
 			curRun = run;
 			getCompetitors();
 			//Client will connect to this location
-			URL site = new URL("http://localhost:8000/sendresults");
+			URL site = new URL(server+"/sendresults");
 			HttpURLConnection conn = (HttpURLConnection) site.openConnection();
 
 			// now create a POST request
@@ -30,10 +36,10 @@ public class HTTPHandler {
 			conn.setDoInput(true);
 			DataOutputStream out = new DataOutputStream(conn.getOutputStream());
 
-			// build a string that contains JSON from console
+			// build a string that contains JSON from run
 			String content = getJSON();
 
-//			System.out.println("\n" + content);
+			System.out.println("\n" + content);
 
 			// write out string to output buffer for message
 			out.writeBytes(content);
@@ -57,13 +63,14 @@ public class HTTPHandler {
 
 
 		} catch (Exception e) {
-//			e.printStackTrace();
+			System.out.println("exception in sendData");
+			e.printStackTrace();
 		}
 	}
 	private static void getCompetitors(){
 		try{
 			//Client will connect to this location
-			URL site = new URL("http://localhost:8000/competitors");
+			URL site = new URL(server+"/competitors");
 			HttpURLConnection conn = (HttpURLConnection) site.openConnection();
 
 			// now create a POST request
@@ -80,9 +87,10 @@ public class HTTPHandler {
 	        String str = sb.toString();
 //	        System.out.print("top"+sb.toString()+"bottom");
 	        Gson g = new Gson();
-	        ArrayList<JsonObject> obs = new ArrayList<JsonObject>();
-	        obs.addAll(g.fromJson(str, new TypeToken<Collection<JsonObject>>(){}.getType()));
-			}catch(Exception e){		
+	        names.addAll(g.fromJson(str, new TypeToken<Collection<JsonObject>>(){}.getType()));
+			}catch(Exception e){	
+				System.out.println("exception in getCompetitors");
+				e.printStackTrace();
 			}
 	}
 	private static String getJSON(){

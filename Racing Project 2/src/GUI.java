@@ -405,7 +405,7 @@ public class GUI extends JFrame{
 			cmd=0;
 			break;
 		case 1:
-			str = "1. IND\n"+"2. PARIND\n"+"3.GRP\n4.PARGRP\n";
+			str = "1. IND\n"+"2. PARIND\n"+"3. GRP\n4. PARGRP\n";
 			cmd=1;
 			input="";
 			break;
@@ -629,6 +629,7 @@ public class GUI extends JFrame{
 					else{
 						t.start();
 						commandMode = false;
+						input ="";
 					}
 				}else if(btn == swapButton){
 					Shell.readCommand("SWAP");

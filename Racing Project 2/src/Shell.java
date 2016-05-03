@@ -39,15 +39,7 @@ public class Shell
 			new Sensors(8, false);
 			ui = new GUI();
 			ui.setVisible(true);
-			//			for(int i = 0;i<=7;i++){
-			//				threadedsensors[i]=new ThreadedSensor(this,i);
-			//				threadedsensors[i].start();
-			//			}
-			//			try {
-			//				threadedsensors[7].join();
-			//			} catch (InterruptedException e) {
-			//				//e.printStackTrace();
-			//			}
+
 		}
 		else{
 			new Sensors(8, false);
@@ -64,15 +56,7 @@ public class Shell
 			new Sensors(8, false);
 			ui = new GUI();
 			ui.setVisible(true);
-			//			for(int i = 0;i<=7;i++){
-			//				threadedsensors[i]=new ThreadedSensor(this,i);
-			//				threadedsensors[i].start();
-			//			}
-			//			try {
-			//				threadedsensors[7].join();
-			//			} catch (InterruptedException e) {
-			//				//e.printStackTrace();
-			//			}
+
 		}
 		else{
 			new Sensors(8, false);
@@ -286,8 +270,12 @@ public class Shell
 							{
 								curRun.setType(GRP);
 							}
-							else{
-
+							else 
+								if(type.equalsIgnoreCase("pargrp"))
+								{
+									curRun.setType(PARGRP);
+								}
+								else{
 								in.close();
 								errorMessage = "Invalid argument";
 								return false;

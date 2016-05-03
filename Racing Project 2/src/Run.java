@@ -95,31 +95,7 @@ public class Run {
 			return Time.convertToTimestamp(0);
 		}
 	}
-	//	public void toggle (int channel){
-	//		if(channel<=channels.length && channel>0)
-	//			channels[channel-1]=!channels[channel-1];
-	//	}
-	//	public void setChannelState(int channel, boolean state){
-	//		if(channel<=channels.length && channel>0)
-	//			channels[channel-1]=state;
-	//	}
-	//	public boolean connect(String sensor, int channel){
-	//		if(channel<=channels.length && channel>0){
-	//			sensors[channel-1] = sensor;
-	//			return true;
-	//		}
-	//		else{
-	//			return false;
-	//		}
-	//
-	//	}
-	//	public String getSensor(int channel){
-	//		if(channel<=channels.length && channel>0){
-	//			return sensors[channel-1];
-	//		}
-	//		else
-	//			return null;
-	//	}
+
 	public boolean start(int lane){
 		if(type==PARIND){
 			if(lane==1){
