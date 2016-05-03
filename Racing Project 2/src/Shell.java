@@ -64,7 +64,7 @@ public class Shell
 		runs = new ArrayList<Run>();
 		runs.add(curRun);
 	}
-	public void commandPromptLoop(){
+	private void commandPromptLoop(){
 		Scanner in;
 		String cmdLine = "";
 		boolean exit = false;
@@ -80,7 +80,7 @@ public class Shell
 				exit = true;
 		}
 	}
-	public void readCommandsFromFile(String filePath){
+	private void readCommandsFromFile(String filePath){
 		Scanner in;
 		String cmdLine;
 		try{

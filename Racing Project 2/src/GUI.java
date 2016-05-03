@@ -20,8 +20,6 @@ public class GUI extends JFrame{
 	private JButton swapButton, powerButton, commandsButton, printPowerButton;
 	private Timer t;
 	private boolean commandMode, printPower;
-	//	private Shell shell;
-	//	XXX: as user presses number buttons append the number to input; read input when '#' is pressed; 
 	private String input;
 	private int cmd;
 	private ArrayList<String> printerText;

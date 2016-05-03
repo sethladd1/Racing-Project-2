@@ -16,8 +16,6 @@ public class Run {
 	private final int IND=0,PARIND=1, GRP = 2, PARGRP=3;
 	private int chan;
 	private boolean running;
-	private boolean channels[];
-	private String sensors[];
 	private int runNum;
 	private boolean started;
 	private Racer lastFinish1, lastFinish2;
@@ -43,8 +41,6 @@ public class Run {
 		running = true;
 		started = false;
 		time = new Time();
-		channels = new boolean[8];
-		sensors = new String[8];
 	}
 	public boolean setType(int type){
 		if(running && (type == IND || type == PARIND || type == GRP||type==PARGRP)){
