@@ -52,20 +52,28 @@ public class Server {
 			Gson g = new Gson();
 			ArrayList<JsonObject> objects = new ArrayList<JsonObject>();
 			JsonObject jso = new JsonObject();
-			jso.addProperty("NAME", "Joe");
-			jso.addProperty("NUMBER", 111);
+			jso.addProperty("NAME", "Ed Snowden");
+			jso.addProperty("NUMBER", 217);
 			objects.add(jso);
 			jso = new JsonObject();
-			jso.addProperty("NAME", "Bob");
-			jso.addProperty("NUMBER", 112);
+			jso.addProperty("NAME", "Bob Smith");
+			jso.addProperty("NUMBER", 314);
 			objects.add(jso);
 			jso = new JsonObject();
-			jso.addProperty("NAME", "Jim");
-			jso.addProperty("NUMBER", 113);
+			jso.addProperty("NAME", "Carol OConnor");
+			jso.addProperty("NUMBER", 211);
 			objects.add(jso);
 			jso = new JsonObject();
-			jso.addProperty("NAME", "George PFunk Clinton");
-			jso.addProperty("NUMBER", 114);
+			jso.addProperty("NAME", "Prince");
+			jso.addProperty("NUMBER", 17);
+			objects.add(jso);
+			jso = new JsonObject();
+			jso.addProperty("NAME", "Peekaboo Street");
+			jso.addProperty("NUMBER", 310);
+			objects.add(jso);
+			jso = new JsonObject();
+			jso.addProperty("NAME", "Lindsey Vonn");
+			jso.addProperty("NUMBER", 500);
 			objects.add(jso);
 			String response = g.toJson(objects);
 			t.sendResponseHeaders(200, response.length());
@@ -95,7 +103,7 @@ public class Server {
             os.close();
         }
         public String getOutput(){
-        	String out = "<html><head><style >th{background-color:lightgreen;}tr[name='1']{background-color:lightgrey;}</style></head><body><table><th >Last Race</th><tr><th> Place </th><th> Number </th><th> Name </th><th> Time </th></tr>";
+        	String out = "<html><head><style >th{background-color:lightgreen;}tr[name='1']{background-color:lightgrey;}</style></head><body><table><th colspan=4>Last Race</th><tr><th> Place </th><th> Number </th><th> Name </th><th> Time </th></tr>";
         	int i=0;
         	for(RacerStats r : stats){
         		i++;
