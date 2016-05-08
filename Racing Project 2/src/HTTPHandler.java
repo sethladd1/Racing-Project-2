@@ -13,18 +13,18 @@ import com.google.gson.reflect.TypeToken;
 
 public class HTTPHandler {
 	private static Run curRun;
-	private static ArrayList<JsonObject> names;
-	private static ArrayList<RacerStats> stats;
-	private static String server;
+	private static ArrayList<JsonObject> names = new ArrayList<JsonObject>();
+	private static ArrayList<RacerStats> stats = new ArrayList<HTTPHandler.RacerStats>();
+	private static String server = "http://localhost:8000";
 	public HTTPHandler(String server){
 		HTTPHandler.server = server;
-		names = new ArrayList<JsonObject>();
-		stats = new ArrayList<HTTPHandler.RacerStats>();
 	}
 	public static void sendData(Run run){
 		try {
 
 			curRun = run;
+			names.clear();
+			stats.clear();
 			getCompetitors();
 			//Client will connect to this location
 			URL site = new URL(server+"/sendresults");
@@ -63,8 +63,8 @@ public class HTTPHandler {
 
 
 		} catch (Exception e) {
-			System.out.println("exception in sendData");
-			e.printStackTrace();
+			System.out.println("Unable to send data to the server");
+//			e.printStackTrace();
 		}
 	}
 	private static void getCompetitors(){
@@ -89,8 +89,8 @@ public class HTTPHandler {
 	        Gson g = new Gson();
 	        names.addAll(g.fromJson(str, new TypeToken<Collection<JsonObject>>(){}.getType()));
 			}catch(Exception e){	
-				System.out.println("exception in getCompetitors");
-				e.printStackTrace();
+				System.out.println("Unable to fetch competitor names from server");
+//				e.printStackTrace();
 			}
 	}
 	private static String getJSON(){
@@ -133,7 +133,12 @@ public class HTTPHandler {
 					}
 				}
 				if(!found){
-					stats.add(new RacerStats("", String.valueOf(racers.get(i).getNumber()), i+1, Time.convertToTimestamp(racers.get(i).getRunTime())));
+					if(racers.get(i).DNF()){
+						stats.add(new RacerStats("", String.valueOf(racers.get(i).getNumber()), i+1, "DNF"));	
+					}
+					else{
+						stats.add(new RacerStats("", String.valueOf(racers.get(i).getNumber()), i+1, Time.convertToTimestamp(racers.get(i).getRunTime())));
+					}
 				}
 			}
 		}

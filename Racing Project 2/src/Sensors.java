@@ -54,7 +54,7 @@ public class Sensors {
 			while(true){
 				if(triggered){
 					if(enabled){
-						Shell.trigger(1);
+						Shell.trigger(num);
 						triggered = false;
 					}
 					else{

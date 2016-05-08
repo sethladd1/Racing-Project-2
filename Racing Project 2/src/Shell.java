@@ -36,10 +36,10 @@ public class Shell
 		runs.add(curRun);
 		if(!noGUI){
 //			TODO  set Sensors arg true, when sensor trip button are in place in GUI
-			new Sensors(8, false);
+			new Sensors(8, true);
 			ui = new GUI();
 			ui.setVisible(true);
-
+			
 		}
 		else{
 			new Sensors(8, false);
@@ -53,7 +53,7 @@ public class Shell
 
 		if(!noGUI){
 //			TODO  set Sensors arg true, when sensor trip button are in place in GUI
-			new Sensors(8, false);
+			new Sensors(8, true);
 			ui = new GUI();
 			ui.setVisible(true);
 

@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonAreaLayout;
 
 import java.awt.*;
@@ -11,10 +12,12 @@ import java.util.Scanner;
 public class GUI extends JFrame{
 	final static ImageIcon enabled = new ImageIcon("Icons/enabledChan.png");
 	final static ImageIcon disabled = new ImageIcon("Icons/disabledChan.png");
+	final static ImageIcon trip = new ImageIcon("Icons/sensorTrip.png");
 	private ArrayList<JLabel> channels;
 	private ArrayList<JButton> triggers;
 	private ArrayList<JButton> numPad;
-	private ArrayList<JComboBox<String>> sensors;
+	private ArrayList<JLabel> sensorTrips;
+	private ArrayList<JComboBox<String>> sensorType;
 	private JTextArea display;
 	private JTextArea printer;
 	private JButton swapButton, powerButton, commandsButton, printPowerButton;
@@ -29,7 +32,8 @@ public class GUI extends JFrame{
 		cmd=0;
 		channels = new ArrayList<JLabel>();
 		triggers = new ArrayList<JButton>();
-		sensors = new ArrayList<JComboBox<String>>();
+		sensorType = new ArrayList<JComboBox<String>>();
+		sensorTrips = new ArrayList<JLabel>();
 		display = new JTextArea();
 		display.setEditable(false);
 		display.setBackground(Color.BLACK);
@@ -89,7 +93,11 @@ public class GUI extends JFrame{
 			cb.addItem("GATE");
 			cb.addItem("PAD");
 			cb.addActionListener(new SensorListener());
-			sensors.add(cb);
+			sensorType.add(cb);
+			l = new JLabel(trip);
+			l.addMouseListener(new ClickListener());
+			sensorTrips.add(l);
+
 		}
 		t = new Timer(20, new ActionListener(){
 
@@ -203,7 +211,6 @@ public class GUI extends JFrame{
 		numPan.setLayout(new GridLayout(4, 4));
 		for(JButton btn : numPad){
 			numPan.add(btn);
-
 		}
 		east.add(numPan);
 		east.add(new JLabel(" "));
@@ -219,39 +226,44 @@ public class GUI extends JFrame{
 
 		south.setLayout(new BoxLayout(south, BoxLayout.X_AXIS));
 		JPanel sensorGrid = new JPanel(new GridLayout(4, 5));
-
+		JPanel sp;
 		for(int i=0;i<4;++i){
 			for(int j=0;j<5;++j){
 				if(j==0&&i%2==0){
 					l = new JLabel("Channel");
 					l.setHorizontalAlignment(JLabel.CENTER);
-					//					l.setVerticalAlignment(JLabel.BOTTOM);
 					sensorGrid.add(l);
 				}
 				else{ 
 					if(i%2==0){
 						l = new JLabel(String.valueOf(j+2*i));
 						l.setHorizontalAlignment(JLabel.CENTER);
-						//						l.setVerticalAlignment(JLabel.BOTTOM);
 						sensorGrid.add(l);
 					}
 					else
 						if(j==0){
 							l = new JLabel("Sensor");
 							l.setHorizontalAlignment(JLabel.CENTER);
-							//							l.setVerticalAlignment(JLabel.BOTTOM);
 							sensorGrid.add(l);
 						}
 						else	{
 							if(i==1){
-								sensorGrid.add(sensors.get(j-1));
+								sp = new JPanel();
+								sp.setLayout(new BoxLayout(sp, BoxLayout.X_AXIS));
+								sp.add(sensorTrips.get(j-1));
+								sp.add(sensorType.get(j-1));
+								sensorGrid.add(sp);
+								
 							}
 							else{
-								sensorGrid.add(sensors.get(j+3));
+								sp = new JPanel();
+								sp.setLayout(new BoxLayout(sp, BoxLayout.X_AXIS));
+								sp.add(sensorTrips.get(j+3));
+								sp.add(sensorType.get(j+3));
+								sensorGrid.add(sp);
 							}
 						}
 				}
-
 			}
 		}
 
@@ -571,32 +583,38 @@ public class GUI extends JFrame{
 			int centerX;
 			int centerY; 
 			int x, y;
-			if(icon==disabled || icon == enabled){
-				int chan =  channels.indexOf(l)+1;
-				if(Shell.readCommand("TOG "+chan)){
-					int rad = icon.getIconWidth()/2;
-					centerX = l.getWidth()/2;
-					centerY = l.getHeight()/2;
-					y = Math.abs(e.getY()-centerY);
-					x = Math.abs(e.getX()-centerX);
-
+			int rad = icon.getIconWidth()/2;
+			centerX = l.getWidth()/2;
+			centerY = l.getHeight()/2;
+			y = Math.abs(e.getY()-centerY);
+			x = Math.abs(e.getX()-centerX);
+			if(channels.contains(l)){
+				if(icon==disabled || icon == enabled){
+					int chan =  channels.indexOf(l)+1;
 					if(y*y+x*x<=rad*rad){
-						if(icon == disabled){
-							l.setIcon(enabled);
-						}
-						else{
-							l.setIcon(disabled);
+					if(Shell.readCommand("TOG "+chan)){
+						
+							if(icon == disabled){
+								l.setIcon(enabled);
+							}
+							else{
+								l.setIcon(disabled);
+							}
 						}
 					}
-				}
-				else{
-					if(printPower){
-						printer.append(Shell.getErrorMessage());
+					else{
+						if(printPower){
+							printer.append(Shell.getErrorMessage());
+						}
 					}
 				}
 			}
-
-
+			else if(sensorTrips.contains(l)){
+				int i = sensorTrips.indexOf(l);
+				if(Sensors.array.length>i){
+					Sensors.array[i].triggered=true;
+				}
+			}
 		}
 	}
 
@@ -708,105 +726,6 @@ public class GUI extends JFrame{
 							readCommand();
 					}
 				}
-				//				switch(btn.getText()){
-				//				case "Printer Power":
-				//					printPower = !printPower;
-				//					if(printPower)
-				//						print("Printer on");
-				//					break;
-				//				case "Commands":
-				//					if(!commandMode){
-				//						t.stop();
-				//						commandMode = true;
-				//						commands(0);
-				//					}
-				//					else{
-				//						t.start();
-				//						commandMode = false;
-				//					}
-				//					break;
-				//				case "Swap":
-				//					Shell.readCommand("SWAP");
-				//					if(!Shell.getErrorMessage().isEmpty()){
-				//						print(Shell.getErrorMessage());
-				//					}
-				//					break;
-				//				case "1":
-				//					if(commandMode){
-				//						input+="1";
-				//						display.append("1");
-				//					}
-				//					break;
-				//				case "2":
-				//					if(commandMode){
-				//						input+="2";
-				//						display.append("2");
-				//					}
-				//					break;
-				//				case "3":
-				//					if(commandMode){
-				//						input+="3";
-				//						display.append("3");
-				//					}
-				//					break;
-				//				case "4":
-				//					if(commandMode){
-				//						input+="4";
-				//						display.append("4");
-				//					}
-				//					break;
-				//				case "5":
-				//					if(commandMode){
-				//						input+="5";
-				//						display.append("5");
-				//					}
-				//					break;
-				//				case "6":
-				//					if(commandMode){
-				//						input+="6";
-				//						display.append("6");
-				//					}
-				//					break;
-				//				case "7":
-				//					if(commandMode){
-				//						input+="7";
-				//						display.append("7");
-				//					}
-				//					break;
-				//				case "8":
-				//					if(commandMode){
-				//						input+="8";
-				//						display.append("8");
-				//					}
-				//					break;
-				//				case "9":
-				//					if(commandMode){
-				//						input+="9";
-				//						display.append("9");
-				//					}
-				//					break;
-				//				case "0":
-				//					if(commandMode){
-				//						input+="0";
-				//						display.append("0");
-				//					}
-				//					break;
-				//				case "*":
-				//					if(commandMode && cmd==2){
-				//						input+="*";
-				//						display.append("*");
-				//					}
-				//					break;
-				//				case "#":
-				//					if(commandMode){
-				//						if(cmd==0){
-				//							commands(Integer.parseInt(input));
-				//						}
-				//						else
-				//							readCommand();
-				//					}
-				//					break;
-				//				}
 			}
 		}
 
@@ -818,10 +737,10 @@ public class GUI extends JFrame{
 			JComboBox<String> cb = (JComboBox<String>)e.getSource();
 			String s = (String)cb.getSelectedItem();
 			if(s.isEmpty()){
-				Shell.readCommand("DISC "+(sensors.indexOf(cb)+1));
+				Shell.readCommand("DISC "+(sensorType.indexOf(cb)+1));
 			}
 			else{
-				Shell.readCommand("CONN " + s+" "+ (sensors.indexOf(cb)+1));
+				Shell.readCommand("CONN " + s+" "+ (sensorType.indexOf(cb)+1));
 			}
 		}
 

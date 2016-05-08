@@ -7,10 +7,12 @@ public class TestRun extends TestCase {
 	ArrayList<Racer> racers;
 	Run r;
 	protected void setUp() throws Exception {
+		
 	}
 	public void testOneRacer(){
 		r = new Run(0,1);
 		racers = r.getRacers();
+
 		try {
 			setUp();
 		} catch (Exception e) {
@@ -37,12 +39,7 @@ public class TestRun extends TestCase {
 		assertFalse(r.running());
 	}
 	public void testMultipleRacer(){
-		try {
-			setUp();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 		r = new Run(0,1);
 		racers = r.getRacers();
 		assertTrue(r.running());
@@ -92,7 +89,7 @@ public class TestRun extends TestCase {
 		assertTrue(racers.get(1).finished());
 		r.finish(1);
 		assertTrue(racers.get(0).finished());
-		
+		r.end();
 	}
 	public void testGRP(){
 		r = new Run(2,1);
@@ -142,6 +139,31 @@ public class TestRun extends TestCase {
 		assertTrue(racers.get(1).finished());
 		l1=r.getGroupRanks().get(1);
 		assertEquals(l1, racers.get(1).getRunTime());
+		r.end();
 	}
-	
+	public void testPARGRP(){
+		r = new Run(3,1);
+		racers = r.getRacers();
+		assertTrue(r.running());
+		assertFalse(r.hasStarted());
+		
+		for(int i=0;i<8;++i){
+			r.addRacer(i);
+		}
+		assertTrue(r.start());
+		assertTrue(r.hasStarted());
+		assertTrue(racers.get(0).started());
+		assertFalse(racers.get(0).finished());
+		for(int i=0;i<8;++i){
+			assertTrue(racers.get(i).started());
+			assertFalse(racers.get(i).finished());
+		}
+		assertFalse(r.start(3));
+		assertTrue(r.finish(3));
+		assertTrue(racers.get(2).finished());
+		assertFalse(racers.get(0).finished());
+		r.end();
+		assertFalse(racers.get(2).DNF());
+		assertTrue(racers.get(1).DNF());
+	}
 }
